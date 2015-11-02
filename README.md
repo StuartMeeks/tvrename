@@ -1,4 +1,4 @@
-# Download Windows Installer
+# Download Latest Installer
 Download the latest version's installer from here: http://tvrename.com/download.php
 
 # TVRename
