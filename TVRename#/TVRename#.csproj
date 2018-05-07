@@ -97,9 +97,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App\ApplicationBase.cs" />
-    <Compile Include="App\CommandLineArgs.cs" />
     <Compile Include="App\AutoFolderMonitor.cs" />
-    <Compile Include="DownloadIdentifers\IncorrectFileDates.cs" />
     <Compile Include="Exporter\ActionListXML.cs" />
     <Compile Include="Exporter\MissingCSV.cs" />
     <Compile Include="Forms\AutoAddShow.cs">
@@ -128,26 +126,14 @@
     <Compile Include="Custom Controls\TheTVDBCodeFinder.Designer.cs">
       <DependentUpon>TheTVDBCodeFinder.cs</DependentUpon>
     </Compile>
-    <Compile Include="DownloadIdentifers\DownloadEpisodeJPG.cs" />
-    <Compile Include="DownloadIdentifers\DownloadIdentifiersController.cs" />
-    <Compile Include="DownloadIdentifers\DownloadpyTivoMetaData.cs" />
-    <Compile Include="DownloadIdentifers\DownloadMede8erMetaData.cs" />
-    <Compile Include="DownloadIdentifers\DownloadSeriesJPG.cs" />
-    <Compile Include="DownloadIdentifers\DownloadXBMCMetaData.cs" />
-    <Compile Include="DownloadIdentifers\DownloadFanartJPG.cs" />
-    <Compile Include="DownloadIdentifers\DownloadIdentifier.cs" />
-    <Compile Include="DownloadIdentifers\DownloadJolderJPG.cs" />
-    <Compile Include="DownloadIdentifers\DownloadXBMCImages.cs" />
     <Compile Include="Exporter\ShowsTXT.cs" />
     <Compile Include="Exporter\Exporter.cs" />
     <Compile Include="Exporter\MissingXML.cs" />
     <Compile Include="Exporter\UpcomingRSS.cs" />
     <Compile Include="Exporter\UpcomingXML.cs" />
-    <Compile Include="Finders\FileFinder.cs" />
     <Compile Include="Finders\RSSFinder.cs" />
     <Compile Include="Finders\uTorrentFinder.cs" />
     <Compile Include="Finders\SABnzbdFinder.cs" />
-    <Compile Include="Finders\Finder.cs" />
     <Compile Include="Forms\Filters.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -166,13 +152,9 @@
     <Compile Include="Forms\TVRenameSplash.Designer.cs">
       <DependentUpon>TVRenameSplash.cs</DependentUpon>
     </Compile>
-    <Compile Include="ItemsAndActions\ActionDelete.cs" />
     <Compile Include="ItemsAndActions\ActionMede8erViewXML.cs" />
     <Compile Include="ItemsAndActions\ActionMede8erXML.cs" />
-    <Compile Include="ItemsAndActions\ActionDateTouch.cs" />
-    <Compile Include="Settings\ShowFilter.cs" />
     <Compile Include="Utility\PossibleDuplicateEpisode.cs" />
-    <Compile Include="Utility\DirFilesCache.cs" />
     <Compile Include="Forms\ActorsGrid.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -267,28 +249,12 @@
       <DependentUpon>uTorrent.cs</DependentUpon>
     </Compile>
     <Compile Include="ItemsAndActions\ActionPyTivoMeta.cs" />
-    <Compile Include="ItemsAndActions\ItemSABnzbd.cs" />
-    <Compile Include="TheTVDB\Banner.cs" />
-    <Compile Include="TheTVDB\Episode.cs" />
-    <Compile Include="TheTVDB\ExtraEp.cs" />
-    <Compile Include="TheTVDB\Season.cs" />
-    <Compile Include="TheTVDB\SeriesInfo.cs" />
-    <Compile Include="ItemsAndActions\ActionCopyMoveRename.cs" />
-    <Compile Include="ItemsAndActions\ActionDownloadImage.cs" />
-    <Compile Include="ItemsAndActions\ActionItem.cs" />
-    <Compile Include="ItemsAndActions\ItemMissing.cs" />
     <Compile Include="ItemsAndActions\ActionNFO.cs" />
-    <Compile Include="ItemsAndActions\ActionRSS.cs" />
-    <Compile Include="ItemsAndActions\ActionItemSorter.cs" />
-    <Compile Include="ItemsAndActions\ItemuTorrenting.cs" />
     <Compile Include="TVRename\FolderMonitorEntry.cs" />
     <Compile Include="Forms\AddModifyRule.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="TVRename\IgnoreItem.cs" />
     <Compile Include="TVRename\LVResults.cs" />
-    <Compile Include="TVRename\PathManager.cs" />
-    <Compile Include="Utility\BT.cs" />
     <Compile Include="Forms\BugReport.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -298,14 +264,12 @@
     <Compile Include="Forms\CopyMoveProgress.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Settings\CustomName.cs" />
     <Compile Include="Forms\CustomNameDesigner.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\CustomNameTagsFloatingWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Utility\DirCache.cs" />
     <Compile Include="Forms\DownloadProgress.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -318,7 +282,6 @@
     <Compile Include="Forms\FolderMonitorProgress.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Utility\DirCacheEntry.cs" />
     <Compile Include="Utility\Helpers.cs" />
     <Compile Include="Forms\IgnoreEdit.cs">
       <SubType>Form</SubType>
@@ -481,28 +444,19 @@
     <Compile Include="Forms\ScanProgress.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Settings\Searchers.cs" />
-    <Compile Include="Settings\Settings.cs" />
     <Compile Include="Forms\ShowException.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Settings\ShowsAndEpisodes.cs" />
-    <Compile Include="Settings\ShowRule.cs" />
-    <Compile Include="Utility\SABnzbdXML.cs" />
     <Compile Include="Utility\Sorters.cs" />
-    <Compile Include="Settings\Statistics.cs" />
     <Compile Include="Forms\StatsWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="TheTVDB\TheTVDB.cs" />
     <Compile Include="Custom Controls\TheTVDBCodeFinder.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Utility\Timezone.cs" />
     <Compile Include="Forms\TorrentMatch.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="TVRename\TVDoc.cs" />
     <Compile Include="App\Program.cs" />
     <Compile Include="Forms\UI.cs">
       <SubType>Form</SubType>
@@ -549,6 +503,12 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TVRename.AppLogic\TVRename.AppLogic.csproj">
+      <Project>{e6bd5c3a-d44c-4b15-b72b-76ec0d4f713d}</Project>
+      <Name>TVRename.AppLogic</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

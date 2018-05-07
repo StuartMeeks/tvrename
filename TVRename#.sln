@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.27130.2003
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TVRename#", "TVRename#\TVRename#.csproj", "{2FFF6A6D-6094-47FF-AB34-E04E644F8F9C}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TVRename.AppLogic", "TVRename.AppLogic\TVRename.AppLogic.csproj", "{E6BD5C3A-D44C-4B15-B72B-76EC0D4F713D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{2FFF6A6D-6094-47FF-AB34-E04E644F8F9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2FFF6A6D-6094-47FF-AB34-E04E644F8F9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2FFF6A6D-6094-47FF-AB34-E04E644F8F9C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E6BD5C3A-D44C-4B15-B72B-76EC0D4F713D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E6BD5C3A-D44C-4B15-B72B-76EC0D4F713D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E6BD5C3A-D44C-4B15-B72B-76EC0D4F713D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E6BD5C3A-D44C-4B15-B72B-76EC0D4F713D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

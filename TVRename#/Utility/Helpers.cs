@@ -73,148 +73,6 @@ namespace TVRename
     }
 
 
-    public delegate void SetProgressDelegate(int percent);
-
-    public static class XMLHelper
-    {
-        public static void WriteStringsToXml(List<string> strings, XmlWriter writer, string elementName, string stringName)
-        {
-            writer.WriteStartElement(elementName);
-            foreach (string ss in strings)
-            {
-                writer.WriteStartElement(stringName);
-                writer.WriteValue(ss);
-                writer.WriteEndElement();
-            }
-            writer.WriteEndElement();
-        }
-        
-        public static List<string> ReadStringsFromXml(XmlReader reader, string elementName, string stringName)
-        {
-            List<string> r = new List<String>();
-
-            if (reader.Name != elementName)
-                return r; // uhoh
-
-            if (!reader.IsEmptyElement)
-            {
-                reader.Read();
-                while (!reader.EOF)
-                {
-                    if ((reader.Name == elementName) && !reader.IsStartElement())
-                        break;
-                    if (reader.Name == stringName)
-                        r.Add(reader.ReadElementContentAsString());
-                    else
-                        reader.ReadOuterXml();
-                }
-            }
-            reader.Read();
-            return r;
-        }
-
-        public static string ReadStringFixQuotesAndSpaces(XmlReader r)
-        {
-            string res = r.ReadElementContentAsString();
-            res = res.Replace("\\'", "'");
-            res = res.Replace("\\\"", "\"");
-            res = res.Trim();
-            return res;
-        }
-
-        public static void WriteElementToXML(XmlWriter writer, string elementName, string value,bool ignoreifBlank = false)
-        {
-            if (ignoreifBlank && string.IsNullOrEmpty(value)) return;
-
-            writer.WriteStartElement(elementName);
-            writer.WriteValue(value??"");
-            writer.WriteEndElement();
-        }
-        public static void WriteElementToXML(XmlWriter writer, string elementName, double value)
-        {
-            writer.WriteStartElement(elementName);
-            writer.WriteValue(value);
-            writer.WriteEndElement();
-        }
-        public static void WriteElementToXML(XmlWriter writer, string elementName, int value)
-        {
-            writer.WriteStartElement(elementName);
-            writer.WriteValue(value);
-            writer.WriteEndElement();
-        }
-        public static void WriteElementToXML(XmlWriter writer, string elementName, bool value)
-        {
-            writer.WriteStartElement(elementName);
-            writer.WriteValue(value);
-            writer.WriteEndElement();
-        }
-        public static void WriteElementToXML(XmlWriter writer, string attributeName, DateTime? value)
-        {
-            writer.WriteStartElement(attributeName);
-            if (!(value == null))
-                writer.WriteValue(value);
-            writer.WriteEndElement();
-        }
-
-        public static void WriteAttributeToXML(XmlWriter writer, string attributeName, string value)
-        {
-            writer.WriteStartAttribute(attributeName);
-            writer.WriteValue(value);
-            writer.WriteEndAttribute();
-        }
-        public static void WriteAttributeToXML(XmlWriter writer, string attributeName, DateTime?  value)
-        {
-            writer.WriteStartAttribute(attributeName);
-            if (!(value == null))
-                writer.WriteValue(value);
-            writer.WriteEndAttribute();
-        }
-        public static void WriteAttributeToXML(XmlWriter writer, string attributeName, int value)
-        {
-            writer.WriteStartAttribute(attributeName);
-            writer.WriteValue(value);
-            writer.WriteEndAttribute();
-        }
-        public static void WriteAttributeToXML(XmlWriter writer, string attributeName, bool value)
-        {
-            writer.WriteStartAttribute(attributeName);
-            writer.WriteValue(value);
-            writer.WriteEndAttribute();
-        }
-        public static void WriteAttributeToXML(XmlWriter writer, string attributeName, long value)
-        {
-            writer.WriteStartAttribute(attributeName);
-            writer.WriteValue(value);
-            writer.WriteEndAttribute();
-        }
-
-        public static void WriteInfo(XmlWriter writer, string elemName, string attribute, string attributeVal, string value)
-        {
-            if (!string.IsNullOrEmpty(value))
-            {
-                writer.WriteStartElement(elemName);
-                if (!String.IsNullOrEmpty(attribute) && !String.IsNullOrEmpty(attributeVal))
-                {
-                    writer.WriteAttributeString(attribute, attributeVal);
-                }
-                writer.WriteValue(value);
-                writer.WriteEndElement();
-            }
-        }
-
-        public static void WriteInfo(XmlWriter writer, string elemName, string attribute, string attributeVal)
-        {
-            if (!string.IsNullOrEmpty(attributeVal))
-            {
-                writer.WriteStartElement(elemName);
-                if (!String.IsNullOrEmpty(attribute) && !String.IsNullOrEmpty(attributeVal))
-                {
-                    writer.WriteAttributeString(attribute, attributeVal);
-                }
-                writer.WriteEndElement();
-            }
-        }
-    }
 
     public class FileSystemProperties
     {
@@ -260,26 +118,6 @@ namespace TVRename
 
         }
 
-        public static bool SameDirectoryLocation(this string directoryPath1, string directoryPath2)
-        {
-            // http://stackoverflow.com/questions/1794025/how-to-check-whether-2-directoryinfo-objects-are-pointing-to-the-same-directory
-            return string.Compare(directoryPath1.NormalizePath().TrimEnd('\\'), directoryPath2.NormalizePath().TrimEnd('\\'), StringComparison.InvariantCultureIgnoreCase) == 0;
-        }
-
-        public static string NormalizePath(this string path)
-        {
-            //https://stackoverflow.com/questions/2281531/how-can-i-compare-directory-paths-in-c
-            return Path.GetFullPath(new Uri(path).LocalPath)
-                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
-                .ToUpperInvariant();
-        }
-
-        public static string RemoveExtension(this FileInfo file, bool useFullPath = false)
-        {
-            string root = useFullPath ? file.FullName : file.Name;
-
-            return root.Substring(0, root.Length - file.Extension.Length);
-        }
 
         public static void GetFilmDetails(this FileInfo movieFile)
         {
@@ -304,10 +142,6 @@ namespace TVRename
             return ((thisOne.Length >= l) && (thisOne.Substring(0, l).ToLower() == ofThat.ToLower()));
         }
 
-        public static string TTS(this string s) // trim trailing slash
-        {
-            return s.TrimEnd(System.IO.Path.DirectorySeparatorChar);
-        }
 
 
         public static string GBMB(this long value, int decimalPlaces = 2)
@@ -366,45 +200,8 @@ namespace TVRename
             }
         }
 
-        public static bool Same(FileInfo a, FileInfo b)
-        {
-            return String.Compare(a.FullName, b.FullName, true) == 0; // true->ignore case
-        }
-
-        public static bool Same(DirectoryInfo a, DirectoryInfo b)
-        {
-            string n1 = a.FullName;
-            string n2 = b.FullName;
-            if (!n1.EndsWith(Path.DirectorySeparatorChar.ToString()))
-                n1 = n1 + Path.DirectorySeparatorChar;
-            if (!n2.EndsWith(Path.DirectorySeparatorChar.ToString()))
-                n2 = n2 + Path.DirectorySeparatorChar;
-
-            return String.Compare(n1, n2, true) == 0; // true->ignore case
-        }
-
-        public static FileInfo FileInFolder(string dir, string fn)
-        {
-            return new FileInfo(String.Concat(dir, dir.EndsWith(Path.DirectorySeparatorChar.ToString()) ? "" : Path.DirectorySeparatorChar.ToString(), fn));
-        }
-
-        public static FileInfo FileInFolder(DirectoryInfo di, string fn)
-        {
-            return FileInFolder(di.FullName, fn);
-        }
 
         // see if showname is somewhere in filename
-        public static bool SimplifyAndCheckFilename(string filename, string showname, bool simplifyfilename, bool simplifyshowname)
-        {
-            return Regex.Match(simplifyfilename ? Helpers.SimplifyName(filename) : filename, "\\b" + (simplifyshowname ? Helpers.SimplifyName(showname) : showname) + "\\b", RegexOptions.IgnoreCase).Success;
-        }
-
-
-        public static bool SimplifyAndCheckFilename(string filename, string showname)
-        {
-            return SimplifyAndCheckFilename(filename, showname,true,true);
-        }
-
         internal static string TempPath(string v) => Path.GetTempPath() + v;
 
         public static string MakeValidPath(string input)
@@ -422,136 +219,12 @@ namespace TVRename
 
         }
 
-        public static bool IgnoreFile(FileInfo fi)
-        {
-            if (!TVSettings.Instance.UsefulExtension(fi.Extension, false))
-                return true; // move on
-
-            if (TVSettings.Instance.IgnoreSamples &&
-                Helpers.Contains(fi.FullName, "sample", StringComparison.OrdinalIgnoreCase) &&
-                ((fi.Length / (1024 * 1024)) < TVSettings.Instance.SampleFileMaxSizeMB))
-                return true;
-
-            if (fi.Name.StartsWith("-.") && (fi.Length / 1024 < 10)) return true;
-
-
-            return false;
-        }
     }
 
-    public static class HTTPHelper
-    {
-        private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
-
-        public static String HTTPRequest(String method, String url,String json, String contentType,String authToken = "", String lang = "") {
-            HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create(url);
-            httpWebRequest.ContentType = contentType;
-            httpWebRequest.Method = method;
-            if (authToken != "")
-            {
-                httpWebRequest.Headers.Add("Authorization", "Bearer " + authToken);
-            }
-            if (lang != "")
-            {
-                httpWebRequest.Headers.Add("Accept-Language",lang);
-            }
-
-            logger.Trace("Obtaining {0}", url);
-
-            if (method == "POST") { 
-                using (StreamWriter streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
-                {
-                    streamWriter.Write(json);
-                    streamWriter.Flush();
-                }
-            }
-
-            String result;
-            HttpWebResponse httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-            using (StreamReader streamReader = new StreamReader(httpResponse.GetResponseStream()))
-            {
-                result = streamReader.ReadToEnd();
-            }
-            logger.Trace("Returned {0}", result);
-            return result;
-        }
-
-        public static JObject JsonHTTPPOSTRequest( String url, JObject request)
-        {
-            String response = HTTPHelper.HTTPRequest("POST",url, request.ToString(), "application/json");
-
-            return JObject.Parse(response);
-            
-        }
-
-        public static JObject JsonHTTPGETRequest(String url, Dictionary<string, string> parameters, String authToken, String lang="")
-        {
-            String response = HTTPHelper.HTTPRequest("GET", url + getHTTPParameters(parameters), null, "application/json", authToken,lang);
-
-            return JObject.Parse(response);
-
-        }
-
-        public static string getHTTPParameters(Dictionary<string, string> parameters)
-        {
-            if (parameters == null) return "";
-
-            StringBuilder sb = new StringBuilder();
-            sb.Append("?");
-
-            foreach (KeyValuePair<string,string>  item in parameters)
-            {
-                sb.Append(string.Format("{0}={1}&", item.Key, item.Value));
-            }
-            string finalUrl = sb.ToString();
-            return finalUrl.Remove(finalUrl.LastIndexOf("&"));
-        }
-
-    }
-
-    public static class JSONHelper {
-        public static String flatten(JToken ja,String delimiter = ",")
-        {
-            if (ja == null) return "";
-
-            
-            if (ja.Type == JTokenType.Array)
-            {
-                JArray ja2 = (JArray)ja;
-                string[] values = ja2.ToObject<string[]>();
-                return String.Join(delimiter, values);
-            }
-            else { return ""; }
-
-                
-            
-        }
-    }
-
-    public static class StringExtensions
-    {
-
-        public static string itemitems(this int n)
-        {
-            return n == 1 ? "Item" : "Items";
-        }
-
-        public static bool Contains(this string source, string toCheck, StringComparison comp)
-        {
-            return source.IndexOf(toCheck, comp) >= 0;
-        }
 
 
-        public static string ReplaceInsensitive(this string source, string search, string replacement)
-        {
-            return Regex.Replace(
-                source,
-                Regex.Escape(search),
-                replacement.Replace("$", "$$"),
-                RegexOptions.IgnoreCase
-                    );
-        }
-    }
+
+
 
     public static class RegistryHelper {
         //From https://www.cyotek.com/blog/configuring-the-emulation-mode-of-an-internet-explorer-webbrowser-control THANKS
@@ -853,58 +526,14 @@ namespace TVRename
             }
         }
 
-        public static long ToUnixTime(this DateTime date)
-        {
-            return Convert.ToInt64((date.ToUniversalTime() - epoch).TotalSeconds);
-        }
 
-        public static DateTime FromUnixTime(long unixTime)
-        {
-            return epoch.AddSeconds(unixTime);
-        }
-        private static readonly DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        public static readonly DateTime windowsStartDateTime = new DateTime(1980, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-        public static bool SysOpen(string what, string arguments = null)
-        {
-            try
-            {
-                Process.Start(what, arguments);
-                return true;
-            }
-            catch (Exception e)
-            {
-                logger.Error(e);
-                return false;
-            }
-        }
-
-        public static Color WarningColor() => Color.FromArgb(255, 210, 210);
-
-        public static bool Contains(string source, string toCheck, StringComparison comp) => source.IndexOf(toCheck, comp) >= 0;
         
-        public static string TranslateColorToHtml(Color c) =>String.Format("#{0:X2}{1:X2}{2:X2}", c.R, c.G, c.B);
+
         
-        public static string SimplifyName(string n)
-        {
-            n = n.ToLower();
-            n = n.Replace("the", "");
-            n = n.Replace("'", "");
-            n = n.Replace("&", "");
-            n = n.Replace("and", "");
-            n = n.Replace("!", "");
-            n = Regex.Replace(n, "[_\\W]+", " ");
-            return n.Trim();
-        }
+        
+        
 
-        public static string CompareName(string n)
-        {
-            //TODO consider whether merge with above
-            n = Helpers.RemoveDiacritics(n);
-            n = Regex.Replace(n, "[^\\w ]", "");
-            return SimplifyName(n);
-
-        }
 
 
         public static string GetCommonStartString(List<string> testValues)
@@ -971,21 +600,5 @@ namespace TVRename
             return builder.ToString();
         }
 
-        public static string RemoveDiacritics(string stIn)
-        {
-            // From http://blogs.msdn.com/b/michkap/archive/2007/05/14/2629747.aspx
-            string stFormD = stIn.Normalize(NormalizationForm.FormD);
-            StringBuilder sb = new StringBuilder();
-
-            for (int ich = 0; ich < stFormD.Length; ich++)
-            {
-                UnicodeCategory uc = CharUnicodeInfo.GetUnicodeCategory(stFormD[ich]);
-                if (uc != UnicodeCategory.NonSpacingMark)
-                {
-                    sb.Append(stFormD[ich]);
-                }
-            }
-            return (sb.ToString().Normalize(NormalizationForm.FormC));
-        }
     }
 }
