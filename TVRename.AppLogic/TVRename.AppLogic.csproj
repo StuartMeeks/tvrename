@@ -1,14 +1,167 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{72204154-E0D3-4089-8047-8BD6399A3877}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>TVRename.AppLogic</RootNamespace>
+    <AssemblyName>TVRename.AppLogic</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
   </PropertyGroup>
-
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="AlphaFS" Version="2.2.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-    <PackageReference Include="NLog" Version="4.5.4" />
-    <PackageReference Include="System.Drawing.Common" Version="4.5.0-rc1" />
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+      <HintPath>..\packages\NLog.4.5.6\lib\net45\NLog.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
-
+  <ItemGroup>
+    <Compile Include="BitTorrent\BtChunk.cs" />
+    <Compile Include="BitTorrent\BtCore.cs" />
+    <Compile Include="BitTorrent\BtDictionary.cs" />
+    <Compile Include="BitTorrent\BtDictionaryItem.cs" />
+    <Compile Include="BitTorrent\BtEncodeLoader.cs" />
+    <Compile Include="BitTorrent\BtEof.cs" />
+    <Compile Include="BitTorrent\BtError.cs" />
+    <Compile Include="BitTorrent\BtFile.cs" />
+    <Compile Include="BitTorrent\BtFileRenamer.cs" />
+    <Compile Include="BitTorrent\BtInteger.cs" />
+    <Compile Include="BitTorrent\BtItemBase.cs" />
+    <Compile Include="BitTorrent\BtList.cs" />
+    <Compile Include="BitTorrent\BtListOrDictionaryEnd.cs" />
+    <Compile Include="BitTorrent\BtResume.cs" />
+    <Compile Include="BitTorrent\BtString.cs" />
+    <Compile Include="BitTorrent\TorrentEntry.cs" />
+    <Compile Include="CommandLineArgs.cs" />
+    <Compile Include="Delegates\ProgressUpdatedDelegate.cs" />
+    <Compile Include="DownloadIdentifiers\DownloadEpisodeJpg.cs" />
+    <Compile Include="DownloadIdentifiers\DownloadFanartJpg.cs" />
+    <Compile Include="DownloadIdentifiers\DownloadFolderJpg.cs" />
+    <Compile Include="DownloadIdentifiers\DownloadIdentifier.cs" />
+    <Compile Include="DownloadIdentifiers\DownloadIdentifiersController.cs" />
+    <Compile Include="DownloadIdentifiers\DownloadKodiImages.cs" />
+    <Compile Include="DownloadIdentifiers\DownloadKodiMetaData.cs" />
+    <Compile Include="DownloadIdentifiers\DownloadMede8erMetaData.cs" />
+    <Compile Include="DownloadIdentifiers\DownloadpyTivoMetaData.cs" />
+    <Compile Include="DownloadIdentifiers\DownloadSeriesJpg.cs" />
+    <Compile Include="DownloadIdentifiers\DownloadType.cs" />
+    <Compile Include="DownloadIdentifiers\IncorrectFileDates.cs" />
+    <Compile Include="Extensions\DateTimeExtensions.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="FilenameProcessorRegEx.cs" />
+    <Compile Include="FileSystemCache\DirectoryCache.cs" />
+    <Compile Include="FileSystemCache\DirectoryCacheItem.cs" />
+    <Compile Include="FileSystemCache\DirectoryFileCache.cs" />
+    <Compile Include="FileSystemCache\HashCacheItem.cs" />
+    <Compile Include="Finders\FileFinder.cs" />
+    <Compile Include="Finders\FinderBase.cs" />
+    <Compile Include="Finders\FinderDisplayType.cs" />
+    <Compile Include="FolderActionResult.cs" />
+    <Compile Include="FolderMonitor\FolderMonitorEntry.cs" />
+    <Compile Include="FolderMonitor\FolderMonitorEntryList.cs" />
+    <Compile Include="Helpers\ColorHelper.cs" />
+    <Compile Include="Helpers\FileHelper.cs" />
+    <Compile Include="Helpers\HttpHelper.cs" />
+    <Compile Include="Helpers\JsonHelper.cs" />
+    <Compile Include="Helpers\StringHelper.cs" />
+    <Compile Include="Helpers\SystemHelper.cs" />
+    <Compile Include="Helpers\TimeZoneHelper.cs" />
+    <Compile Include="Helpers\XmlHelper.cs" />
+    <Compile Include="Native\FileOperations.cs" />
+    <Compile Include="Native\RecycleBin.cs" />
+    <Compile Include="PossibleDuplicateEpisode.cs" />
+    <Compile Include="ProcessedItems\ProcessedEpisode.cs" />
+    <Compile Include="ProcessedItems\ProcessedSeries.cs" />
+    <Compile Include="ProcessedItems\RuleAction.cs" />
+    <Compile Include="ProcessedItems\SearcherChoice.cs" />
+    <Compile Include="ProcessedItems\Searchers.cs" />
+    <Compile Include="ProcessedItems\SeasonRule.cs" />
+    <Compile Include="ProcessedItems\SeriesFilter.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Replacement.cs" />
+    <Compile Include="Sab\SabCodeGen.cs" />
+    <Compile Include="ScanItems\ActionQueue.cs" />
+    <Compile Include="ScanItems\Actions\ActionBase.cs" />
+    <Compile Include="ScanItems\Actions\CopyMoveRenameFileAction.cs" />
+    <Compile Include="ScanItems\Actions\DeleteAction.cs" />
+    <Compile Include="ScanItems\Actions\DeleteDirectoryAction.cs" />
+    <Compile Include="ScanItems\Actions\DeleteFileAction.cs" />
+    <Compile Include="ScanItems\Actions\DownloadAction.cs" />
+    <Compile Include="ScanItems\Actions\DownloadImageAction.cs" />
+    <Compile Include="ScanItems\Actions\FileMetaDataAction.cs" />
+    <Compile Include="ScanItems\Actions\FileOperationAction.cs" />
+    <Compile Include="ScanItems\Actions\FileOperationType.cs" />
+    <Compile Include="ScanItems\Actions\NfoAction.cs" />
+    <Compile Include="ScanItems\Actions\RssAction.cs" />
+    <Compile Include="ScanItems\Actions\TouchFileAction.cs" />
+    <Compile Include="ScanItems\Actions\WriteMetaDataAction.cs" />
+    <Compile Include="ScanItems\ItemList.cs" />
+    <Compile Include="ScanItems\ItemSorter.cs" />
+    <Compile Include="ScanItems\Items\IgnoreItem.cs" />
+    <Compile Include="ScanItems\Items\InProgressItem.cs" />
+    <Compile Include="ScanItems\Items\ItemBase.cs" />
+    <Compile Include="ScanItems\Items\MissingItem.cs" />
+    <Compile Include="ScanItems\Items\RssItem.cs" />
+    <Compile Include="ScanItems\Items\SabNzbDItem.cs" />
+    <Compile Include="ScanItems\Items\UTorrentingItem.cs" />
+    <Compile Include="Settings\ApplicationSettings.cs" />
+    <Compile Include="Settings\CustomName.cs" />
+    <Compile Include="Settings\FileSettings.cs" />
+    <Compile Include="Settings\TidySettings.cs" />
+    <Compile Include="ShowStatusColoringType.cs" />
+    <Compile Include="ShowStatusColoringTypeList.cs" />
+    <Compile Include="Statistics.cs" />
+    <Compile Include="TheTvDb\TheTvDbBanner.cs" />
+    <Compile Include="TheTvDb\TheTvDbClient.cs" />
+    <Compile Include="TheTvDb\TheTvDbEpisode.cs" />
+    <Compile Include="TheTvDb\TheTvDbException.cs" />
+    <Compile Include="TheTvDb\TheTvDbExtraEpisode.cs" />
+    <Compile Include="TheTvDb\TheTvDbKeepAliveTimer.cs" />
+    <Compile Include="TheTvDb\TheTvDbLanguage.cs" />
+    <Compile Include="TheTvDb\TheTvDbSeason.cs" />
+    <Compile Include="TheTvDb\TheTvDbSeasonStatus.cs" />
+    <Compile Include="TheTvDb\TheTvDbSeries.cs" />
+    <Compile Include="TvRenameManager.cs" />
+    <Compile Include="UpdateVersion.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

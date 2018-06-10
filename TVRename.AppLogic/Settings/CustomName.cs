@@ -124,7 +124,7 @@ namespace TVRename.AppLogic.Settings
                 string ymd = dt.ToString("yyyy/MM/dd");
                 if (urlEncode)
                 {
-                    ymd = System.Web.HttpUtility.UrlEncode(ymd);
+                    ymd = System.Net.WebUtility.UrlEncode(ymd);
                 }
                 name = name.ReplaceInsensitive("{YMDDate}", ymd);
             }
@@ -135,7 +135,7 @@ namespace TVRename.AppLogic.Settings
                 string ymd = "----/--/--";
                 if (urlEncode)
                 {
-                    ymd = System.Web.HttpUtility.UrlEncode(ymd);
+                    ymd = System.Net.WebUtility.UrlEncode(ymd);
                 }
                 name = name.ReplaceInsensitive("{YMDDate}", ymd);
             }
@@ -172,8 +172,8 @@ namespace TVRename.AppLogic.Settings
 
             if (urlEncode)
             {
-                showname = System.Web.HttpUtility.UrlEncode(showname);
-                epname = System.Web.HttpUtility.UrlEncode(epname);
+                showname = System.Net.WebUtility.UrlEncode(showname);
+                epname = System.Net.WebUtility.UrlEncode(epname);
             }
 
             name = name.ReplaceInsensitive("{ShowName}", showname);
@@ -195,7 +195,7 @@ namespace TVRename.AppLogic.Settings
                 string ymd = dt.ToString("yyyy/MM/dd");
                 if (urlEncode)
                 {
-                    ymd = System.Web.HttpUtility.UrlEncode(ymd);
+                    ymd = System.Net.WebUtility.UrlEncode(ymd);
                 }
                 name = name.ReplaceInsensitive("{YMDDate}", ymd);
             }
@@ -206,7 +206,7 @@ namespace TVRename.AppLogic.Settings
                 string ymd = "----/--/--";
                 if (urlEncode)
                 {
-                    ymd = System.Web.HttpUtility.UrlEncode(ymd);
+                    ymd = System.Net.WebUtility.UrlEncode(ymd);
                 }
                 name = name.ReplaceInsensitive("{YMDDate}", ymd);
             }

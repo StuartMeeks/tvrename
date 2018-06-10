@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
-
-using Alphaleonis.Win32.Filesystem;
+using System.IO;
 using NLog;
 using TVRename.AppLogic.Delegates;
 

@@ -1,7 +1,8 @@
-using Alphaleonis.Win32.Filesystem;
+using System.IO;
 using TVRename.AppLogic.Delegates;
 using TVRename.AppLogic.Helpers;
 using TVRename.AppLogic.ScanItems;
+using TVRename.AppLogic.ScanItems.Actions;
 
 namespace TVRename.AppLogic.BitTorrent
 {
@@ -23,9 +24,14 @@ namespace TVRename.AppLogic.BitTorrent
 
         public override bool FoundFileOnDiskForFileInTorrent(string torrentFile, FileInfo onDisk, int numberInTorrent, string nameInTorrent)
         {
-            var newItem = new CopyMoveRenameActionItem(onDisk,
-                FileHelper.FileInFolder(this.CopyNotMove ? this.CopyToFolder : onDisk.Directory.Name, nameInTorrent),
-                CopyNotMove ? FileOperation.Copy : FileOperation.Rename, null, null, null);
+            if (onDisk.Directory == null)
+            {
+                return true;
+            }
+
+            var newItem = new CopyMoveRenameFileAction(onDisk,
+                FileHelper.FileInFolder(CopyNotMove ? CopyToFolder : onDisk.Directory.Name, nameInTorrent),
+                CopyNotMove ? FileOperationType.Copy : FileOperationType.Rename, null, null, null);
 
             RenameListOut.Add(newItem);
 
@@ -44,9 +50,12 @@ namespace TVRename.AppLogic.BitTorrent
 
         public string CacheStats()
         {
-            string r = "Hash Cache: " + this.CacheItems + " items for " + this.HashCache.Count + " files.  " + this.CacheHits + " hits from " + this.CacheChecks + " lookups";
-            if (this.CacheChecks != 0)
-                r += " (" + (100 * this.CacheHits / this.CacheChecks) + "%)";
+            var r = "Hash Cache: " + CacheItems + " items for " + HashCache.Count + " files.  " + CacheHits + " hits from " + CacheChecks + " lookups";
+            if (CacheChecks != 0)
+            {
+                r += " (" + (100 * CacheHits / CacheChecks) + "%)";
+            }
+
             return r;
         }
 
@@ -76,7 +85,7 @@ namespace TVRename.AppLogic.BitTorrent
 
             RenameListOut.Clear();
 
-            bool r = this.ProcessTorrentFile(torrentFile); //TODO: Put this back, tvTree, args);
+            var r = ProcessTorrentFile(torrentFile); //TODO: Put this back, tvTree, args);
 
             return r;
         }

@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
-using Alphaleonis.Win32.Filesystem;
+using System.IO;
 using TVRename.AppLogic.Extensions;
 using TVRename.AppLogic.ProcessedItems;
 using TVRename.AppLogic.ScanItems;
+using TVRename.AppLogic.ScanItems.Actions;
 using TVRename.AppLogic.Settings;
 
 namespace TVRename.AppLogic.DownloadIdentifiers
@@ -19,7 +20,7 @@ namespace TVRename.AppLogic.DownloadIdentifiers
 
         public override DownloadType GetDownloadType() => DownloadType.DownloadMetaData;
 
-        public override ItemList ProcessShow(ProcessedSeries si, bool forceRefresh)
+        public override ItemList ProcessSeries(ProcessedSeries si, bool forceRefresh = false)
         {
             DateTime? newUpdateTime = si.TheSeries().LastAiredDate();
             if (ApplicationSettings.Instance.CorrectFileDates && newUpdateTime.HasValue)
@@ -36,14 +37,14 @@ namespace TVRename.AppLogic.DownloadIdentifiers
                     _doneFilesAndFolders.Add(di.FullName);
                     return new ItemList
                     {
-                        new DateTouchActionItem(di, si, newUpdateTime.Value)
+                        new TouchFileAction(di, si, newUpdateTime.Value)
                     };
                 }
             }
             return null;
         }
 
-        public override ItemList ProcessSeason(ProcessedSeries si, string folder, int snum, bool forceRefresh)
+        public override ItemList ProcessSeason(ProcessedSeries si, string folder, int snum, bool forceRefresh = false)
         {
             DateTime? newUpdateTime = si.GetSeason(snum).LastAiredDate();
 
@@ -59,14 +60,14 @@ namespace TVRename.AppLogic.DownloadIdentifiers
                 if ((di.LastWriteTimeUtc != newUpdateTime.Value) &&(!_doneFilesAndFolders.Contains(di.FullName)))
                 {
                     _doneFilesAndFolders.Add(di.FullName);
-                    return new ItemList() { new DateTouchActionItem(di, si, newUpdateTime.Value) };
+                    return new ItemList() { new TouchFileAction(di, si, newUpdateTime.Value) };
                 }
                 
             }
             return null;
         }
 
-        public override ItemList ProcessEpisode(ProcessedEpisode dbep, FileInfo filo, bool forceRefresh)
+        public override ItemList ProcessEpisode(ProcessedEpisode dbep, FileInfo filo, bool forceRefresh = false)
         {
             if (ApplicationSettings.Instance.CorrectFileDates && dbep.FirstAired.HasValue)
             {
@@ -83,7 +84,7 @@ namespace TVRename.AppLogic.DownloadIdentifiers
                     _doneFilesAndFolders.Add(filo.FullName);
                     return new ItemList
                     {
-                        new DateTouchActionItem(filo,dbep, newUpdateTime)
+                        new TouchFileAction(filo,dbep, newUpdateTime)
                     };
                 }
             }

@@ -1,8 +1,9 @@
 using System.Collections.Generic;
+using System.IO;
 using TVRename.AppLogic.Helpers;
 using TVRename.AppLogic.ProcessedItems;
+using TVRename.AppLogic.ScanItems;
 using TVRename.AppLogic.Settings;
-using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 
 namespace TVRename.AppLogic.DownloadIdentifiers
 {
@@ -18,7 +19,7 @@ namespace TVRename.AppLogic.DownloadIdentifiers
 
         public override DownloadType GetDownloadType() => DownloadType.DownloadMetaData;
 
-        public override ItemList ProcessShow(ProcessedSeries si, bool forceRefresh)
+        public override ItemList ProcessSeries(ProcessedSeries si, bool forceRefresh = false)
         {
             if (ApplicationSettings.Instance.Mede8erXML)
             {
@@ -46,7 +47,7 @@ namespace TVRename.AppLogic.DownloadIdentifiers
                 return actionList;
             }
 
-            return base.ProcessShow(si, forceRefresh);
+            return base.ProcessSeries(si, forceRefresh);
         }
 
         public override ItemList ProcessSeason(ProcessedSeries si, string folder, int snum, bool forceRefresh)

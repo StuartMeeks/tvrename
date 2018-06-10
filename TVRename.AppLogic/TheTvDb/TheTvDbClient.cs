@@ -11,8 +11,6 @@ using Newtonsoft.Json.Linq;
 using TVRename.AppLogic.Extensions;
 using TVRename.AppLogic.Helpers;
 using TVRename.AppLogic.Settings;
-using File = Alphaleonis.Win32.Filesystem.File;
-using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 
 namespace TVRename.AppLogic.TheTvDb
 {

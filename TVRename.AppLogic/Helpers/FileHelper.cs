@@ -1,8 +1,8 @@
 using System;
 using System.Globalization;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
-using Alphaleonis.Win32.Filesystem;
 using TVRename.AppLogic.Extensions;
 using TVRename.AppLogic.Settings;
 
@@ -44,8 +44,8 @@ namespace TVRename.AppLogic.Helpers
 
         public static bool IsSameDirectory(DirectoryInfo a, DirectoryInfo b)
         {
-            string n1 = a.FullName;
-            string n2 = b.FullName;
+            var n1 = a.FullName;
+            var n2 = b.FullName;
             if (!n1.EndsWith(Path.DirectorySeparatorChar.ToString()))
             {
                 n1 = n1 + Path.DirectorySeparatorChar;
@@ -59,6 +59,17 @@ namespace TVRename.AppLogic.Helpers
             return string.Compare(n1, n2, StringComparison.CurrentCultureIgnoreCase) == 0;
         }
 
+        public static bool IsSubfolderOf(this string thisOne, string ofThat)
+        {
+            // need terminating slash, otherwise "c:\abc def" will match "c:\abc"
+            thisOne += Path.DirectorySeparatorChar.ToString();
+            ofThat += Path.DirectorySeparatorChar.ToString();
+            var l = ofThat.Length;
+
+            return thisOne.Length >= l
+                   && string.Equals(thisOne.Substring(0, l), ofThat, StringComparison.CurrentCultureIgnoreCase);
+        }
+
         public static string TrimTrailingSlash(this string s) // trim trailing slash
         {
             return s.TrimEnd(Path.DirectorySeparatorChar);
@@ -66,14 +77,14 @@ namespace TVRename.AppLogic.Helpers
 
         public static string CompareName(string n)
         {
-            n = FileHelper.RemoveDiacritics(n);
+            n = RemoveDiacritics(n);
             n = Regex.Replace(n, "[^\\w ]", "");
             return SimplifyName(n);
 
         }
         public static string RemoveExtension(this FileInfo file, bool useFullPath = false)
         {
-            string root = useFullPath ? file.FullName : file.Name;
+            var root = useFullPath ? file.FullName : file.Name;
 
             return root.Substring(0, root.Length - file.Extension.Length);
         }
@@ -81,23 +92,27 @@ namespace TVRename.AppLogic.Helpers
         public static string RemoveDiacritics(string stIn)
         {
             // From http://blogs.msdn.com/b/michkap/archive/2007/05/14/2629747.aspx
-            string stFormD = stIn.Normalize(NormalizationForm.FormD);
-            StringBuilder sb = new StringBuilder();
+            var stFormD = stIn.Normalize(NormalizationForm.FormD);
+            var sb = new StringBuilder();
 
-            for (int ich = 0; ich < stFormD.Length; ich++)
+            foreach (var t in stFormD)
             {
-                UnicodeCategory uc = CharUnicodeInfo.GetUnicodeCategory(stFormD[ich]);
+                var uc = CharUnicodeInfo.GetUnicodeCategory(t);
                 if (uc != UnicodeCategory.NonSpacingMark)
                 {
-                    sb.Append(stFormD[ich]);
+                    sb.Append(t);
                 }
             }
-            return (sb.ToString().Normalize(NormalizationForm.FormC));
+            return sb.ToString().Normalize(NormalizationForm.FormC);
         }
 
         public static FileInfo FileInFolder(string dir, string fn)
         {
-            return new FileInfo(string.Concat(dir, dir.EndsWith(Path.DirectorySeparatorChar.ToString()) ? "" : Path.DirectorySeparatorChar.ToString(), fn));
+            return new FileInfo(string.Concat(dir,
+                dir.EndsWith(Path.DirectorySeparatorChar.ToString())
+                    ? ""
+                    : Path.DirectorySeparatorChar.ToString(),
+                fn));
         }
 
         public static FileInfo FileInFolder(DirectoryInfo di, string fn)
@@ -113,7 +128,9 @@ namespace TVRename.AppLogic.Helpers
         public static bool IgnoreFile(FileInfo fi)
         {
             if (!ApplicationSettings.Instance.UsefulExtension(fi.Extension, false))
+            {
                 return true; // move on
+            }
 
             if (ApplicationSettings.Instance.IgnoreSamples
                 && fi.FullName.Contains("sample", StringComparison.OrdinalIgnoreCase)
@@ -122,12 +139,49 @@ namespace TVRename.AppLogic.Helpers
                 return true;
             }
 
-            if (fi.Name.StartsWith("-.") && fi.Length / 1024 < 10)
+            return fi.Name.StartsWith("-.") && fi.Length / 1024 < 10;
+        }
+
+        public static void Rotate(string filenameBase)
+        {
+            if (!File.Exists(filenameBase))
             {
-                return true;
+                return;
             }
 
-            return false;
+            for (var i = 8; i >= 0; i--)
+            {
+                var fn = filenameBase + "." + i;
+                if (!File.Exists(fn))
+                {
+                    continue;
+                }
+
+                var fn2 = filenameBase + "." + (i + 1);
+                if (File.Exists(fn2))
+                {
+                    File.Delete(fn2);
+                }
+                File.Move(fn, fn2);
+            }
+
+            File.Copy(filenameBase, filenameBase + ".0");
+        }
+
+        public static int GetFilmLength(this FileInfo movieFile)
+        {
+            string duration;
+            using (ShellObject shell = ShellObject.FromParsingName(movieFile.FullName))
+            {
+                // alternatively: shell.Properties.GetProperty("System.Media.Duration");
+                IShellProperty prop = shell.Properties.System.Media.Duration;
+                // Duration will be formatted as 00:44:08
+                duration = prop.FormatForDisplay(PropertyDescriptionFormatOptions.None);
+            }
+
+            return 3600 * int.Parse(duration.Split(':')[0]) + 60 * int.Parse(duration.Split(':')[1]) +
+                   int.Parse(duration.Split(':')[2]);
+
         }
 
     }

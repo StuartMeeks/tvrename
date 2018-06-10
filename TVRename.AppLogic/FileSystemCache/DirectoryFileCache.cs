@@ -1,12 +1,11 @@
-using System;
 using System.Collections.Generic;
-using Alphaleonis.Win32.Filesystem;
+using System.IO;
 
 namespace TVRename.AppLogic.FileSystemCache
 {
     public class DirectoryFileCache
     {
-        private Dictionary<String, FileInfo[]> _fileCache;
+        private Dictionary<string, FileInfo[]> _fileCache;
 
         public DirectoryFileCache()
         {
@@ -39,11 +38,11 @@ namespace TVRename.AppLogic.FileSystemCache
 
             try
             {
-                FileInfo[] files = directory.GetFiles();
+                var files = directory.GetFiles();
                 _fileCache[folder] = files;
                 return files;
             }
-            catch (System.IO.IOException)
+            catch (IOException)
             {
                 return null;
             }

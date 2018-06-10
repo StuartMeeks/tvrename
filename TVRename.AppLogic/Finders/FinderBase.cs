@@ -1,4 +1,5 @@
 using TVRename.AppLogic.Delegates;
+using TVRename.AppLogic.ScanItems;
 
 namespace TVRename.AppLogic.Finders
 {

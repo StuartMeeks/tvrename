@@ -102,21 +102,6 @@ namespace TVRename
 
     public static class FileHelper
     {
-        public static int GetFilmLength(this FileInfo movieFile)
-        {
-            string duration;
-            using (ShellObject shell = ShellObject.FromParsingName(movieFile.FullName))
-            {
-                // alternatively: shell.Properties.GetProperty("System.Media.Duration");
-                IShellProperty prop = shell.Properties.System.Media.Duration;
-                // Duration will be formatted as 00:44:08
-                duration = prop.FormatForDisplay(PropertyDescriptionFormatOptions.None);
-            }
-
-            return 3600 * int.Parse(duration.Split(':')[0]) + 60 * int.Parse(duration.Split(':')[1]) +
-                   int.Parse(duration.Split(':')[2]);
-
-        }
 
 
         public static void GetFilmDetails(this FileInfo movieFile)
@@ -133,14 +118,6 @@ namespace TVRename
             }
         }
 
-   public static bool IsSubfolderOf(this string thisOne, string ofThat)
-        {
-            // need terminating slash, otherwise "c:\abc def" will match "c:\abc"
-            thisOne += System.IO.Path.DirectorySeparatorChar.ToString();
-            ofThat += System.IO.Path.DirectorySeparatorChar.ToString();
-            int l = ofThat.Length;
-            return ((thisOne.Length >= l) && (thisOne.Substring(0, l).ToLower() == ofThat.ToLower()));
-        }
 
 
 
@@ -180,26 +157,6 @@ namespace TVRename
         }
 
    
-        public static void Rotate(string filenameBase)
-        {
-            if (File.Exists(filenameBase))
-            {
-                for (int i = 8; i >= 0; i--)
-                {
-                    string fn = filenameBase + "." + i;
-                    if (File.Exists(fn))
-                    {
-                        string fn2 = filenameBase + "." + (i + 1);
-                        if (File.Exists(fn2))
-                            File.Delete(fn2);
-                        File.Move(fn, fn2);
-                    }
-                }
-
-                File.Copy(filenameBase, filenameBase + ".0");
-            }
-        }
-
 
         // see if showname is somewhere in filename
         internal static string TempPath(string v) => Path.GetTempPath() + v;
@@ -494,25 +451,6 @@ namespace TVRename
             }
         }
 
-        /// <summary>
-        /// Gets the application display version from the current assemblies <see cref="AssemblyInformationalVersionAttribute"/>.
-        /// </summary>
-        /// <value>
-        /// The application display version.
-        /// </value>
-        public static string DisplayVersion
-        {
-            get
-            {
-                string v = Assembly.GetExecutingAssembly().GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false).Cast<AssemblyInformationalVersionAttribute>().First().InformationalVersion;
-
-#if DEBUG
-                v += " ** Debug Build **";
-#endif
-
-                return v;
-            }
-        }
 
         public static string pad(int i)
         {
@@ -536,33 +474,6 @@ namespace TVRename
 
 
 
-        public static string GetCommonStartString(List<string> testValues)
-        {
-            string root = string.Empty;
-            bool first = true;
-            foreach (string test in testValues)
-            {
-                if (first)
-                {
-                    root = test;
-                    first = false;
-                }
-                else
-                {
-                    root = GetCommonStartString(root, test);
-                }
-                
-            }
-            return root;
-        }
-
-        public static string TrimEnd(this string root, string ending)
-        {
-            if (!root.EndsWith(ending,StringComparison.OrdinalIgnoreCase)) return root;
-
-            return root.Substring(0, root.Length - ending.Length);
-        }
-
         public static string RemoveAfter(this string root, string ending)
         {
             if (root.IndexOf(ending, StringComparison.OrdinalIgnoreCase) !=-1)
@@ -570,35 +481,6 @@ namespace TVRename
             return root;
         }
 
-        public static string TrimEnd(this string root, string[] endings)
-        {
-            string trimmedString = root;
-            foreach (string ending in endings)
-            {
-                trimmedString = trimmedString.TrimEnd(ending);
-            }
-
-            return trimmedString;
-        }
-
-        public static string GetCommonStartString(string first, string second)
-        {
-            StringBuilder builder = new StringBuilder();
-            
-            int minLength = Math.Min(first.Length, second.Length);
-            for (int i = 0; i < minLength; i++)
-            {
-                if (first[i].Equals(second[i]))
-                {
-                    builder.Append(first[i]);
-                }
-                else
-                {
-                    break;
-                }
-            }
-            return builder.ToString();
-        }
 
     }
 }

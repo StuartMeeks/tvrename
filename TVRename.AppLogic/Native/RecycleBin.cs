@@ -29,10 +29,12 @@ namespace TVRename.AppLogic.Native
 
         public static void DeleteFile(string filePath)
         {
-            SHFILEOPSTRUCT fileop = new SHFILEOPSTRUCT();
-            fileop.wFunc = FO_DELETE;
-            fileop.pFrom = filePath + '\0' + '\0';
-            fileop.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION;
+            var fileop = new SHFILEOPSTRUCT
+            {
+                wFunc = FO_DELETE,
+                pFrom = filePath + '\0' + '\0',
+                fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION
+            };
 
             SHFileOperation(ref fileop);
         }

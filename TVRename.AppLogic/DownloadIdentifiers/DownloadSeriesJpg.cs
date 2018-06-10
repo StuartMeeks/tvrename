@@ -1,9 +1,10 @@
 using System.Collections.Generic;
+using System.IO;
 using TVRename.AppLogic.Helpers;
 using TVRename.AppLogic.ProcessedItems;
 using TVRename.AppLogic.ScanItems;
+using TVRename.AppLogic.ScanItems.Actions;
 using TVRename.AppLogic.Settings;
-using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 
 namespace TVRename.AppLogic.DownloadIdentifiers
 {
@@ -30,7 +31,7 @@ namespace TVRename.AppLogic.DownloadIdentifiers
                     string bannerPath = si.TheSeries().GetSeasonBannerPath(snum);
                     if (!string.IsNullOrEmpty(bannerPath))
                     {
-                        actionList.Add(new DownloadImageActionItem(si, null, fi, bannerPath, ApplicationSettings.Instance.ShrinkLargeMede8erImages));
+                        actionList.Add(new DownloadImageAction(si, null, fi, bannerPath, ApplicationSettings.Instance.ShrinkLargeMede8erImages));
                     }
 
                     _doneJpg.Add(fi.FullName);

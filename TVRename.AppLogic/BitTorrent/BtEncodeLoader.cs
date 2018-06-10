@@ -13,11 +13,11 @@ namespace TVRename.AppLogic.BitTorrent
 
         }
 
-        public BtItemBase ReadString(Stream sr, long length)
+        public static BtItemBase ReadString(Stream sr, long length)
         {
-            BinaryReader br = new BinaryReader(sr);
-            byte[] c = br.ReadBytes((int)length);
-            BtString bts = new BtString
+            var br = new BinaryReader(sr);
+            var c = br.ReadBytes((int)length);
+            var bts = new BtString
             {
                 Data = c
             };
@@ -25,11 +25,11 @@ namespace TVRename.AppLogic.BitTorrent
             return bts;
         }
 
-        public BtItemBase ReadInt(FileStream sr)
+        public static BtItemBase ReadInt(FileStream sr)
         {
             long r = 0;
             int c;
-            bool neg = false;
+            var neg = false;
             while ((c = sr.ReadByte()) != 'e')
             {
                 if (c == '-')
@@ -47,7 +47,7 @@ namespace TVRename.AppLogic.BitTorrent
                 r = -r;
             }
 
-            BtInteger bti = new BtInteger
+            var bti = new BtInteger
             {
                 Value = r
             };
@@ -56,10 +56,10 @@ namespace TVRename.AppLogic.BitTorrent
 
         public BtItemBase ReadDictionary(FileStream sr)
         {
-            BtDictionary d = new BtDictionary();
+            var d = new BtDictionary();
             for (; ; )
             {
-                BtItemBase next = this.ReadNext(sr);
+                var next = ReadNext(sr);
                 if (next.Type == BtChunk.ListOrDictionaryEnd || next.Type == BtChunk.Eof)
                 {
                     return d;
@@ -67,17 +67,17 @@ namespace TVRename.AppLogic.BitTorrent
 
                 if (next.Type != BtChunk.String)
                 {
-                    BtError e = new BtError
+                    var e = new BtError
                     {
                         Message = "Didn't get string as first of pair in dictionary"
                     };
                     return e;
                 }
 
-                BtDictionaryItem di = new BtDictionaryItem
+                var di = new BtDictionaryItem
                 {
                     Key = ((BtString)next).AsString(),
-                    Data = this.ReadNext(sr)
+                    Data = ReadNext(sr)
                 };
 
                 d.Items.Add(di);
@@ -86,10 +86,10 @@ namespace TVRename.AppLogic.BitTorrent
 
         public BtItemBase ReadList(FileStream sr)
         {
-            BtList ll = new BtList();
+            var ll = new BtList();
             for (; ; )
             {
-                BtItemBase next = ReadNext(sr);
+                var next = ReadNext(sr);
                 if (next.Type == BtChunk.ListOrDictionaryEnd)
                 {
                     return ll;
@@ -108,7 +108,7 @@ namespace TVRename.AppLogic.BitTorrent
 
             // Read the next character from the stream to see what is next
 
-            int c = sr.ReadByte();
+            var c = sr.ReadByte();
             if (c == 'd')
             {
                 return ReadDictionary(sr);
@@ -127,7 +127,7 @@ namespace TVRename.AppLogic.BitTorrent
             }
             if ((c >= '0') && (c <= '9')) // digits mean it is a string of the specified length
             {
-                string r = Convert.ToString(c - '0');
+                var r = Convert.ToString(c - '0');
                 while ((c = sr.ReadByte()) != ':')
                 {
                     r += Convert.ToString(c - '0');
@@ -135,7 +135,7 @@ namespace TVRename.AppLogic.BitTorrent
                 return ReadString(sr, Convert.ToInt32(r));
             }
 
-            BtError e = new BtError
+            var e = new BtError
             {
                 Message = $"Error: unknown BEncode item type: {c}"
             };
@@ -145,7 +145,7 @@ namespace TVRename.AppLogic.BitTorrent
 
         public BtFile Load(string filename)
         {
-            BtFile f = new BtFile();
+            var f = new BtFile();
 
             FileStream sr;
             try

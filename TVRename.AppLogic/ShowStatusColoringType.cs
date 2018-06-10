@@ -1,4 +1,6 @@
 using System;
+using TVRename.AppLogic.ProcessedItems;
+using TVRename.AppLogic.TheTvDb;
 
 namespace TVRename.AppLogic
 {
@@ -40,42 +42,42 @@ namespace TVRename.AppLogic
         {
             get
             {
-                if (!this.IsMetaType)
+                if (!IsMetaType)
                 {
-                    return this.Status;
+                    return Status;
                 }
-                if (this.IsShowLevel)
+                if (IsShowLevel)
                 {
-                    ShowItem.ShowAirStatus status = (ShowItem.ShowAirStatus)Enum.Parse(typeof(ShowItem.ShowAirStatus), this.Status);
+                    var status = (ProcessedSeries.ShowAirStatus)Enum.Parse(typeof(ProcessedSeries.ShowAirStatus), Status);
                     switch (status)
                     {
-                        case ShowItem.ShowAirStatus.Aired:
+                        case ProcessedSeries.ShowAirStatus.Aired:
                             return "All aired";
-                        case ShowItem.ShowAirStatus.NoEpisodesOrSeasons:
+                        case ProcessedSeries.ShowAirStatus.NoEpisodesOrSeasons:
                             return "No Seasons or Episodes in Seasons";
-                        case ShowItem.ShowAirStatus.NoneAired:
+                        case ProcessedSeries.ShowAirStatus.NoneAired:
                             return "None aired";
-                        case ShowItem.ShowAirStatus.PartiallyAired:
+                        case ProcessedSeries.ShowAirStatus.PartiallyAired:
                             return "Partially aired";
                         default:
-                            return this.Status;
+                            return Status;
                     }
                 }
                 else
                 {
-                    Season.SeasonStatus status = (Season.SeasonStatus)Enum.Parse(typeof(Season.SeasonStatus), this.Status);
+                    var status = (TheTvDbSeasonStatus)Enum.Parse(typeof(TheTvDbSeasonStatus), Status);
                     switch (status)
                     {
-                        case Season.SeasonStatus.Aired:
+                        case TheTvDbSeasonStatus.Aired:
                             return "All aired";
-                        case Season.SeasonStatus.NoEpisodes:
+                        case TheTvDbSeasonStatus.NoEpisodes:
                             return "No Episodes";
-                        case Season.SeasonStatus.NoneAired:
+                        case TheTvDbSeasonStatus.NoneAired:
                             return "None aired";
-                        case Season.SeasonStatus.PartiallyAired:
+                        case TheTvDbSeasonStatus.PartiallyAired:
                             return "Partially aired";
                         default:
-                            return this.Status;
+                            return Status;
                     }
                 }
             }

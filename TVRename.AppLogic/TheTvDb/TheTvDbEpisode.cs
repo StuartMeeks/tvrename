@@ -301,19 +301,19 @@ namespace TVRename.AppLogic.TheTvDb
                     }
 
                 }
-                catch (ArgumentException ae)
+                catch (ArgumentException)
                 {
                     // TODO: Put this back
                     // logger.Error("Could not parse Json for " + episodeItems.Name + " :" + ae.Message);
                     //ignore as probably a cast exception
                 }
-                catch (NullReferenceException ae)
+                catch (NullReferenceException)
                 {
                     // TODO: Put this back
                     // logger.Error("Could not parse Json for " + episodeItems.Name + " :" + ae.Message);
                     //ignore as probably a cast exception
                 }
-                catch (InvalidCastException ae)
+                catch (InvalidCastException)
                 {
                     // TODO: Put this back
                     // logger.Error("Could not parse Json for " + episodeItems.Name + " :" + ae.Message);
@@ -376,15 +376,15 @@ namespace TVRename.AppLogic.TheTvDb
                         this.FirstAired = DateTime.ParseExact(contents, "yyyy-MM-dd", new System.Globalization.CultureInfo(""));
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     // TODO: Put this back
                     // logger.Debug(e, "Failed to parse firstAired");
-                    this.FirstAired = null;
+                    FirstAired = null;
 
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // TODO: Put this back
                 // logger.Error(e, $"Failed to parse : {r.ToString() }");

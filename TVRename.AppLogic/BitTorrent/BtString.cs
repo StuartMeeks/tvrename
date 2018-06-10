@@ -32,13 +32,13 @@ namespace TVRename.AppLogic.BitTorrent
 
         public string AsString()
         {
-            Encoding encoding = Encoding.UTF8;
+            var encoding = Encoding.UTF8;
             return encoding.GetString(Data);
         }
 
         public byte[] StringTwentyBytePiece(int pieceNum)
         {
-            byte[] res = new byte[20];
+            var res = new byte[20];
             if (pieceNum * 20 + 20 > Data.Length)
             {
                 return null;
@@ -50,8 +50,8 @@ namespace TVRename.AppLogic.BitTorrent
 
         public static string CharsToHex(byte[] data, int start, int n)
         {
-            string r = string.Empty;
-            for (int i = 0; i < n; i++)
+            var r = string.Empty;
+            for (var i = 0; i < n; i++)
             {
                 r += (data[start + i] < 16 ? "0" : string.Empty) + data[start + i].ToString("x").ToUpper();
             }

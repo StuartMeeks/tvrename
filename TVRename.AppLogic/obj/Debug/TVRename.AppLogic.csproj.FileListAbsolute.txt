@@ -1,0 +1,2 @@
+D:\Code\GitHub\tvrename\tvrename\TVRename.AppLogic\obj\Debug\TVRename.AppLogic.csprojAssemblyReference.cache
+D:\Code\GitHub\tvrename\tvrename\TVRename.AppLogic\obj\Debug\TVRename.AppLogic.csproj.CoreCompileInputs.cache

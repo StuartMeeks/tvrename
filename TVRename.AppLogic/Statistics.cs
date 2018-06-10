@@ -1,7 +1,8 @@
 using System;
+using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
-using Alphaleonis.Win32.Filesystem;
+using TVRename.AppLogic.Settings;
 
 namespace TVRename.AppLogic
 {
@@ -25,7 +26,7 @@ namespace TVRename.AppLogic
 
         public static Statistics Load()
         {
-            var statisticsFile = FileManager.StatisticsFile.FullName;
+            var statisticsFile = FileSettings.StatisticsFile.FullName;
             return !File.Exists(statisticsFile)
                 ? new Statistics()
                 : LoadFrom(statisticsFile);
@@ -33,7 +34,7 @@ namespace TVRename.AppLogic
 
         public void Save()
         {
-            SaveToFile(FileManager.StatisticsFile.FullName);
+            SaveToFile(FileSettings.StatisticsFile.FullName);
         }
 
         private static Statistics LoadFrom(string filename)
@@ -43,7 +44,7 @@ namespace TVRename.AppLogic
                 return null;
             }
 
-            XmlReaderSettings settings = new XmlReaderSettings
+            var settings = new XmlReaderSettings
             {
                 IgnoreComments = true,
                 IgnoreWhitespace = true
@@ -52,9 +53,9 @@ namespace TVRename.AppLogic
 
             try
             {
-                using (XmlReader reader = XmlReader.Create(filename, settings))
+                using (var reader = XmlReader.Create(filename, settings))
                 {
-                    XmlSerializer xs = new XmlSerializer(typeof(Statistics));
+                    var xs = new XmlSerializer(typeof(Statistics));
                     sc = (Statistics)xs.Deserialize(reader);
                     System.Diagnostics.Debug.Assert(sc != null);
 
@@ -70,21 +71,21 @@ namespace TVRename.AppLogic
 
         private void SaveToFile(string toFile)
         {
-            DirectoryInfo directory = new FileInfo(toFile).Directory;
-            if (!directory.Exists)
+            var directory = new FileInfo(toFile).Directory;
+            if (directory != null && !directory.Exists)
             {
                 directory.Create();
             }
 
-            XmlWriterSettings settings = new XmlWriterSettings
+            var settings = new XmlWriterSettings
             {
                 Indent = true,
                 NewLineOnAttributes = true
             };
 
-            using (XmlWriter writer = XmlWriter.Create(toFile, settings))
+            using (var writer = XmlWriter.Create(toFile, settings))
             {
-                XmlSerializer xs = new XmlSerializer(typeof(Statistics));
+                var xs = new XmlSerializer(typeof(Statistics));
                 xs.Serialize(writer, this);
             }
         }

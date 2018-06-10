@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using TVRename.AppLogic.Helpers;
 using TVRename.AppLogic.ProcessedItems;
 using TVRename.AppLogic.ScanItems;
+using TVRename.AppLogic.ScanItems.Actions;
 using TVRename.AppLogic.Settings;
-using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 
 namespace TVRename.AppLogic.DownloadIdentifiers
 {
@@ -19,29 +19,30 @@ namespace TVRename.AppLogic.DownloadIdentifiers
 
         public override DownloadType GetDownloadType() => DownloadType.DownloadImage;
 
-        public override ItemList ProcessShow(ProcessedSeries si, bool forceRefresh)
+        public override ItemList ProcessSeries(ProcessedSeries si, bool forceRefresh = false)
         {
             //We only want to do something if the fanart option is enabled. If the KODI option is enabled then let it do the work.
-            if ((ApplicationSettings.Instance.FanArtJpg) && !ApplicationSettings.Instance.KODIImages)
+            if ((!ApplicationSettings.Instance.FanArtJpg) || ApplicationSettings.Instance.KODIImages)
             {
-                ItemList actionList = new ItemList();
-                FileInfo fi = FileHelper.FileInFolder(si.AutoAdd_FolderBase, DefaultFileName);
-
-                bool doesntExist =  !fi.Exists;
-                if ((forceRefresh ||doesntExist) &&(!_doneFanartJpg.Contains(fi.FullName)))
-                {
-                    string bannerPath = si.TheSeries().GetSeriesFanartPath();
-
-                    if (!string.IsNullOrEmpty(bannerPath))
-                    {
-                        actionList.Add(new DownloadImageActionItem(si, null, fi, bannerPath, false));
-                    }
-                    _doneFanartJpg.Add(fi.FullName);
-                }
-                return actionList;
-
+                return base.ProcessSeries(si, forceRefresh);
             }
-            return base.ProcessShow(si, forceRefresh);
+
+            var actionList = new ItemList();
+            var fi = FileHelper.FileInFolder(si.AutoAdd_FolderBase, DefaultFileName);
+            var doesntExist =  !fi.Exists;
+
+            if (!forceRefresh && !doesntExist || _doneFanartJpg.Contains(fi.FullName))
+            {
+                return actionList;
+            }
+
+            var bannerPath = si.TheSeries().GetSeriesFanartPath();
+            if (!string.IsNullOrEmpty(bannerPath))
+            {
+                actionList.Add(new DownloadImageAction(si, null, fi, bannerPath));
+            }
+            _doneFanartJpg.Add(fi.FullName);
+            return actionList;
         }
 
         public sealed override void Reset()

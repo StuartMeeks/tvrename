@@ -1,4 +1,4 @@
-using Alphaleonis.Win32.Filesystem;
+using System.IO;
 using TVRename.AppLogic.Helpers;
 
 namespace TVRename.AppLogic.FileSystemCache

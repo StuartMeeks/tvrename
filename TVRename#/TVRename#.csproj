@@ -154,7 +154,6 @@
     </Compile>
     <Compile Include="ItemsAndActions\ActionMede8erViewXML.cs" />
     <Compile Include="ItemsAndActions\ActionMede8erXML.cs" />
-    <Compile Include="Utility\PossibleDuplicateEpisode.cs" />
     <Compile Include="Forms\ActorsGrid.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -249,8 +248,6 @@
       <DependentUpon>uTorrent.cs</DependentUpon>
     </Compile>
     <Compile Include="ItemsAndActions\ActionPyTivoMeta.cs" />
-    <Compile Include="ItemsAndActions\ActionNFO.cs" />
-    <Compile Include="TVRename\FolderMonitorEntry.cs" />
     <Compile Include="Forms\AddModifyRule.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -503,12 +500,6 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\TVRename.AppLogic\TVRename.AppLogic.csproj">
-      <Project>{e6bd5c3a-d44c-4b15-b72b-76ec0d4f713d}</Project>
-      <Name>TVRename.AppLogic</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

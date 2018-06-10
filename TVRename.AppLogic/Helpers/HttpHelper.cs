@@ -14,7 +14,7 @@ namespace TVRename.AppLogic.Helpers
 
         public static string HttpRequest(string method, string url, string json, string contentType, string authToken = "", string lang = "")
         {
-            HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create(url);
+            var httpWebRequest = (HttpWebRequest)WebRequest.Create(url);
             httpWebRequest.ContentType = contentType;
             httpWebRequest.Method = method;
             if (authToken != "")
@@ -31,7 +31,7 @@ namespace TVRename.AppLogic.Helpers
 
             if (method == "POST")
             {
-                using (StreamWriter streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
+                using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
                 {
                     streamWriter.Write(json);
                     streamWriter.Flush();
@@ -39,8 +39,8 @@ namespace TVRename.AppLogic.Helpers
             }
 
             string result;
-            HttpWebResponse httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-            using (StreamReader streamReader = new StreamReader(httpResponse.GetResponseStream()))
+            var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+            using (var streamReader = new StreamReader(httpResponse.GetResponseStream() ?? throw new InvalidOperationException()))
             {
                 result = streamReader.ReadToEnd();
             }
@@ -51,14 +51,14 @@ namespace TVRename.AppLogic.Helpers
 
         public static JObject JsonHttpPostRequest(string url, JObject request)
         {
-            string response = HttpHelper.HttpRequest("POST", url, request.ToString(), "application/json");
+            var response = HttpRequest("POST", url, request.ToString(), "application/json");
 
             return JObject.Parse(response);
         }
 
         public static JObject JsonHttpGetRequest(string url, Dictionary<string, string> parameters, string authToken, string lang = "")
         {
-            string response = HttpHelper.HttpRequest("GET", url + GetHttpParameters(parameters), null, "application/json", authToken, lang);
+            var response = HttpRequest("GET", url + GetHttpParameters(parameters), null, "application/json", authToken, lang);
 
             return JObject.Parse(response);
 
@@ -68,10 +68,10 @@ namespace TVRename.AppLogic.Helpers
         {
             if (parameters == null) return "";
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.Append("?");
 
-            foreach (KeyValuePair<string, string> item in parameters)
+            foreach (var item in parameters)
             {
                 sb.Append($"{item.Key}={item.Value}&");
             }

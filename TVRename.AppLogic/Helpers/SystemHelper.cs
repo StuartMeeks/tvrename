@@ -1,5 +1,7 @@
 using System;
 using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
 
 namespace TVRename.AppLogic.Helpers
 {
@@ -12,11 +14,31 @@ namespace TVRename.AppLogic.Helpers
                 Process.Start(fileName, arguments);
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // TODO: Put this back
                 // logger.Error(e);
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// Gets the application display version from the current assemblies <see cref="AssemblyInformationalVersionAttribute"/>.
+        /// </summary>
+        /// <value>
+        /// The application display version.
+        /// </value>
+        public static string GetDisplayVersion
+        {
+            get
+            {
+                var v = Assembly.GetExecutingAssembly()
+                    .GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false)
+                    .Cast<AssemblyInformationalVersionAttribute>().First().InformationalVersion;
+#if DEBUG
+                v += " ** Debug Build **";
+#endif
+                return v;
             }
         }
 

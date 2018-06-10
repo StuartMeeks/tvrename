@@ -27,7 +27,7 @@ namespace TVRename.AppLogic.BitTorrent
         public override void Write(Stream sw)
         {
             sw.WriteByte((byte)'i');
-            byte[] b = Encoding.ASCII.GetBytes(Value.ToString());
+            var b = Encoding.ASCII.GetBytes(Value.ToString());
             sw.Write(b, 0, b.Length);
             sw.WriteByte((byte)'e');
         }

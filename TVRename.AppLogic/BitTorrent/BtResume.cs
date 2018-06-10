@@ -1,24 +1,19 @@
-using System;
 using System.Collections.Generic;
-using Stream = System.IO.Stream;
-using MemoryStream = System.IO.MemoryStream;
-using PathTooLongException = System.IO.PathTooLongException;
-
+using System.IO;
+using System.Security.Cryptography;
+using NLog;
 using TVRename.AppLogic.Delegates;
 using TVRename.AppLogic.Helpers;
 using TVRename.AppLogic.ProcessedItems;
 using TVRename.AppLogic.ScanItems;
+using TVRename.AppLogic.ScanItems.Items;
 using TVRename.AppLogic.Settings;
-
-using File = Alphaleonis.Win32.Filesystem.File;
-using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
-using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace TVRename.AppLogic.BitTorrent
 {
     public class BtResume : BtCore
     {
-        private static class BTPrio { public const int Normal = 0x08, Skip = 0x80; }
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         public bool Altered;
         public bool DoMatchMissing;
@@ -37,38 +32,34 @@ namespace TVRename.AppLogic.BitTorrent
         public bool TestMode;
         public string Type;
 
-        private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
-
         public BtResume(ProgressUpdatedDelegate setprog, string resumeDatFile)
             : base(setprog)
         {
-            this.ResumeDatPath = resumeDatFile;
+            ResumeDatPath = resumeDatFile;
         }
 
         public BtDictionary GetTorrentDict(string torrentFile)
         {
             // find dictionary for the specified torrent file
+            var it = ResumeDat.GetDict().GetItem(torrentFile, true);
+            if (it == null || it.Type != BtChunk.Dictionary) return null;
 
-            BtItemBase it = this.ResumeDat.GetDict().GetItem(torrentFile, true);
-            if ((it == null) || (it.Type != BtChunk.Dictionary))
-                return null;
-            BtDictionary dict = (BtDictionary)(it);
+            var dict = (BtDictionary) it;
             return dict;
         }
 
         public static int PercentBitsOn(BtString s)
         {
-            int totalBits = 0;
-            int bitsOn = 0;
+            var totalBits = 0;
+            var bitsOn = 0;
 
-            for (int i = 0; i < s.Data.Length; i++)
+            for (var i = 0; i < s.Data.Length; i++)
             {
                 totalBits += 8;
-                byte c = s.Data[i];
-                for (int j = 0; j < 8; j++)
+                var c = s.Data[i];
+                for (var j = 0; j < 8; j++)
                 {
-                    if ((c & 0x01) != 0)
-                        bitsOn++;
+                    if ((c & 0x01) != 0) bitsOn++;
                     c >>= 1;
                 }
             }
@@ -78,86 +69,75 @@ namespace TVRename.AppLogic.BitTorrent
 
         public List<TorrentEntry> AllFilesBeingDownloaded()
         {
-            System.Collections.Generic.List<TorrentEntry> r = new System.Collections.Generic.List<TorrentEntry>();
+            var r = new List<TorrentEntry>();
 
-            BtEncodeLoader bel = new BtEncodeLoader();
-            foreach (BtDictionaryItem it in this.ResumeDat.GetDict().Items)
+            var bel = new BtEncodeLoader();
+            foreach (var it in ResumeDat.GetDict().Items)
             {
-                if ((it.Type != BtChunk.DictionaryItem))
-                    continue;
+                if (it.Type != BtChunk.DictionaryItem) continue;
 
-                BtDictionaryItem dictitem = (BtDictionaryItem)(it);
+                var dictitem = it;
 
-                if ((dictitem.Key == ".fileguard") || (dictitem.Data.Type != BtChunk.Dictionary))
-                    continue;
+                if (dictitem.Key == ".fileguard" || dictitem.Data.Type != BtChunk.Dictionary) continue;
 
-                string torrentFile = dictitem.Key;
-                BtDictionary d2 = (BtDictionary)(dictitem.Data);
+                var torrentFile = dictitem.Key;
+                var d2 = (BtDictionary) dictitem.Data;
+                var p = d2.GetItem("prio");
+                if (p == null || p.Type != BtChunk.String) continue;
 
-                BtItemBase p = d2.GetItem("prio");
-                if ((p == null) || (p.Type != BtChunk.String))
-                    continue;
+                var prioString = (BtString) p;
+                var directoryName = Path.GetDirectoryName(ResumeDatPath) + Path.DirectorySeparatorChar;
 
-                BtString prioString = (BtString)(p);
-                string directoryName = Alphaleonis.Win32.Filesystem.Path.GetDirectoryName(this.ResumeDatPath) + System.IO.Path.DirectorySeparatorChar;
-
-                if (!Alphaleonis.Win32.Filesystem.File.Exists(torrentFile)) // if the torrent file doesn't exist
+                if (!File.Exists(torrentFile)) // if the torrent file doesn't exist
                     torrentFile = directoryName + torrentFile; // ..try prepending the resume.dat folder's path to it.
 
-                if (!Alphaleonis.Win32.Filesystem.File.Exists(torrentFile))
-                    continue; // can't find it.  give up!
+                if (!File.Exists(torrentFile)) continue; // can't find it.  give up!
 
-                BtFile tor = bel.Load(torrentFile);
-                if (tor == null)
-                    continue;
+                var tor = bel.Load(torrentFile);
 
-                List<string> a = tor.AllFilesInTorrent();
+                var a = tor?.AllFilesInTorrent();
                 if (a != null)
                 {
-                    int c = 0;
+                    var c = 0;
 
                     p = d2.GetItem("path");
-                    if ((p == null) || (p.Type != BtChunk.String))
-                        continue;
-                    string defaultFolder = ((BtString)p).AsString();
+                    if (p == null || p.Type != BtChunk.String) continue;
 
-                    BtItemBase targets = d2.GetItem("targets");
-                    bool hasTargets = ((targets != null) && (targets.Type == BtChunk.List));
-                    BtList targetList = (BtList)(targets);
+                    var defaultFolder = ((BtString) p).AsString();
+                    var targets = d2.GetItem("targets");
+                    var hasTargets = targets != null && targets.Type == BtChunk.List;
+                    var targetList = (BtList) targets;
 
-                    foreach (string s in a)
+                    foreach (var s in a)
                     {
-                        if ((c < prioString.Data.Length) && (prioString.Data[c] != BTPrio.Skip))
-                        {
+                        if (c < prioString.Data.Length && prioString.Data[c] != BTPrio.Skip)
                             try
                             {
-                                string saveTo = FileHelper.FileInFolder(defaultFolder, ApplicationSettings.Instance.FilenameFriendly(s)).Name;
+                                var saveTo = FileHelper.FileInFolder(defaultFolder,
+                                    ApplicationSettings.Instance.FilenameFriendly(s)).Name;
                                 if (hasTargets)
-                                {
-                                    // see if there is a target for this (the c'th) file
-                                    for (int i = 0; i < targetList.Items.Count; i++)
+                                    for (var i = 0; i < targetList.Items.Count; i++)
                                     {
-                                        BtList l = (BtList)(targetList.Items[i]);
-                                        BtInteger n = (BtInteger)(l.Items[0]);
-                                        BtString dest = (BtString)(l.Items[1]);
+                                        var l = (BtList) targetList.Items[i];
+                                        var n = (BtInteger) l.Items[0];
+                                        var dest = (BtString) l.Items[1];
                                         if (n.Value == c)
                                         {
                                             saveTo = dest.AsString();
                                             break;
                                         }
                                     }
-                                }
-                                int percent = (a.Count == 1) ? PercentBitsOn((BtString)(d2.GetItem("have"))) : -1;
-                                TorrentEntry te = new TorrentEntry(torrentFile, saveTo, percent);
-                                r.Add(te);
 
+                                var percent = a.Count == 1 ? PercentBitsOn((BtString) d2.GetItem("have")) : -1;
+                                var te = new TorrentEntry(torrentFile, saveTo, percent);
+                                r.Add(te);
                             }
                             catch (PathTooLongException ptle)
                             {
                                 //this is not the file we are looking for
                                 logger.Debug(ptle);
                             }
-                        }
+
                         c++;
                     }
                 }
@@ -168,14 +148,14 @@ namespace TVRename.AppLogic.BitTorrent
 
         public string GetResumePrio(string torrentFile, int fileNum)
         {
-            BtDictionary dict = this.GetTorrentDict(torrentFile);
+            var dict = GetTorrentDict(torrentFile);
             if (dict == null)
                 return "";
-            BtItemBase p = dict.GetItem("prio");
-            if ((p == null) || (p.Type != BtChunk.String))
+            var p = dict.GetItem("prio");
+            if (p == null || p.Type != BtChunk.String)
                 return "";
-            BtString prioString = (BtString)(p);
-            if ((fileNum < 0) || (fileNum > prioString.Data.Length))
+            var prioString = (BtString) p;
+            if (fileNum < 0 || fileNum > prioString.Data.Length)
                 return "";
 
             int pr = prioString.Data[fileNum];
@@ -188,23 +168,23 @@ namespace TVRename.AppLogic.BitTorrent
 
         public void SetResumePrio(string torrentFile, int fileNum, byte newPrio)
         {
-            if (!this.SetPrios)
+            if (!SetPrios)
                 return;
 
             if (fileNum == -1)
                 fileNum = 0;
-            BtDictionary dict = this.GetTorrentDict(torrentFile);
+            var dict = GetTorrentDict(torrentFile);
             if (dict == null)
                 return;
-            BtItemBase p = dict.GetItem("prio");
-            if ((p == null) || (p.Type != BtChunk.String))
+            var p = dict.GetItem("prio");
+            if (p == null || p.Type != BtChunk.String)
                 return;
-            BtString prioString = (BtString)(p);
-            if ((fileNum < 0) || (fileNum > prioString.Data.Length))
+            var prioString = (BtString) p;
+            if (fileNum < 0 || fileNum > prioString.Data.Length)
                 return;
 
-            this.Altered = true;
-            this.PrioWasSet = true;
+            Altered = true;
+            PrioWasSet = true;
 
             prioString.Data[fileNum] = newPrio;
 
@@ -221,28 +201,30 @@ namespace TVRename.AppLogic.BitTorrent
         {
             toHere = RemoveUT(toHere);
 
-            BtDictionary dict = this.GetTorrentDict(torrentFile);
+            var dict = GetTorrentDict(torrentFile);
             if (dict == null)
                 return;
 
-            this.Altered = true;
+            Altered = true;
 
             if (fileNum == -1) // single file torrent
             {
-                BtItemBase p = dict.GetItem("path");
+                var p = dict.GetItem("path");
                 if (p == null)
+                {
                     dict.Items.Add(new BtDictionaryItem("path", new BtString(toHere)));
+                }
                 else
                 {
                     if (p.Type != BtChunk.String)
                         return;
-                    ((BtString)p).SetString(toHere);
+                    ((BtString) p).SetString(toHere);
                 }
             }
             else
             {
                 // multiple file torrent, uses a list called "targets"
-                BtItemBase p = dict.GetItem("targets");
+                var p = dict.GetItem("targets");
                 BtList theList = null;
                 if (p == null)
                 {
@@ -253,8 +235,9 @@ namespace TVRename.AppLogic.BitTorrent
                 {
                     if (p.Type != BtChunk.List)
                         return;
-                    theList = (BtList)(p);
+                    theList = (BtList) p;
                 }
+
                 if (theList == null)
                     return;
 
@@ -262,21 +245,23 @@ namespace TVRename.AppLogic.BitTorrent
 
                 BtList thisFileList = null;
                 // see if this file is already in the list
-                for (int i = 0; i < theList.Items.Count; i++)
+                for (var i = 0; i < theList.Items.Count; i++)
                 {
                     if (theList.Items[i].Type != BtChunk.List)
                         return;
 
-                    BtList l2 = (BtList)(theList.Items[i]);
-                    if ((l2.Items.Count != 2) || (l2.Items[0].Type != BtChunk.Integer) || (l2.Items[1].Type != BtChunk.String))
+                    var l2 = (BtList) theList.Items[i];
+                    if (l2.Items.Count != 2 || l2.Items[0].Type != BtChunk.Integer ||
+                        l2.Items[1].Type != BtChunk.String)
                         return;
-                    int n = (int)((BtInteger)(l2.Items[0])).Value;
+                    var n = (int) ((BtInteger) l2.Items[0]).Value;
                     if (n == fileNum)
                     {
                         thisFileList = l2;
                         break;
                     }
                 }
+
                 if (thisFileList == null) // didn't find it
                 {
                     thisFileList = new BtList();
@@ -285,7 +270,9 @@ namespace TVRename.AppLogic.BitTorrent
                     theList.Items.Add(thisFileList);
                 }
                 else
+                {
                     thisFileList.Items[1] = new BtString(toHere);
+                }
             }
         }
 
@@ -293,24 +280,24 @@ namespace TVRename.AppLogic.BitTorrent
         {
             // finally, fix up ".fileguard"
             // this is the SHA1 of the entire file, without the .fileguard
-            this.ResumeDat.GetDict().RemoveItem(".fileguard");
-            MemoryStream ms = new MemoryStream();
-            this.ResumeDat.Write(ms);
-            System.Security.Cryptography.SHA1Managed sha1 = new System.Security.Cryptography.SHA1Managed();
-            byte[] theHash = sha1.ComputeHash(ms.GetBuffer(), 0, (int)ms.Length);
+            ResumeDat.GetDict().RemoveItem(".fileguard");
+            var ms = new MemoryStream();
+            ResumeDat.Write(ms);
+            var sha1 = new SHA1Managed();
+            var theHash = sha1.ComputeHash(ms.GetBuffer(), 0, (int) ms.Length);
             ms.Close();
-            string newfg = BtString.CharsToHex(theHash, 0, 20);
-            this.ResumeDat.GetDict().Items.Add(new BtDictionaryItem(".fileguard", new BtString(newfg)));
+            var newfg = BtString.CharsToHex(theHash, 0, 20);
+            ResumeDat.GetDict().Items.Add(new BtDictionaryItem(".fileguard", new BtString(newfg)));
         }
 
         public FileInfo MatchMissing(string torrentFile, int torrentFileNum, string nameInTorrent)
         {
             // returns true if we found a match (if actSetPrio is on, true also means we have set a priority for this file)
-            string simplifiedfname = FileHelper.SimplifyName(nameInTorrent);
+            var simplifiedfname = FileHelper.SimplifyName(nameInTorrent);
 
-            foreach (ItemBase Action1 in this.MissingList)
+            foreach (var Action1 in MissingList)
             {
-                if ((!(Action1 is MissingItem)) && (!(Action1 is UTorrentingItem)) && (!(Action1 is SabNzbDItem)))
+                if (!(Action1 is MissingItem) && !(Action1 is UTorrentingItem) && !(Action1 is SabNzbDItem))
                     continue;
 
                 ProcessedEpisode m = null;
@@ -318,131 +305,137 @@ namespace TVRename.AppLogic.BitTorrent
 
                 if (Action1 is MissingItem)
                 {
-                    MissingItem Action = (MissingItem)(Action1);
+                    var Action = (MissingItem) Action1;
                     m = Action.ItemEpisode;
                     name = Action.TheFileNoExt;
                 }
                 else if (Action1 is UTorrentingItem)
                 {
-                    UTorrentingItem Action = (UTorrentingItem)(Action1);
+                    var Action = (UTorrentingItem) Action1;
                     m = Action.ItemEpisode;
                     name = Action.DesiredLocationNoExt;
                 }
                 else if (Action1 is SabNzbDItem)
                 {
-                    SabNzbDItem Action = (SabNzbDItem)(Action1);
+                    var Action = (SabNzbDItem) Action1;
                     m = Action.ItemEpisode;
                     name = Action.DesiredLocationNoExt;
                 }
 
-                if ((m == null) || string.IsNullOrEmpty(name))
+                if (m == null || string.IsNullOrEmpty(name))
                     continue;
 
                 // see if the show name matches...
                 if (FileHelper.SimplifyAndCheckFilename(simplifiedfname, m.TheSeries.Name, false, true))
                 {
                     // see if season and episode match
-                    bool findFile = TVDoc.FindSeasEp("", simplifiedfname, out int seasF, out int epF, out int maxEp, m.SI, this.Rexps, out FilenameProcessorRegEx rex);
-                    bool matchSeasonEpisode = m.SI.DVDOrder
-                        ? (seasF == m.AiredSeasonNumber) && (epF == m.AiredEpNum)
-                        : (seasF == m.DVDSeasonNumber) && (epF == m.DVDEpNum);
+                    bool findFile = TvRenameManager.FindSeasEp("", simplifiedfname, out int seasF, out int epF, out int maxEp,
+                        m.SI, Rexps, out FilenameProcessorRegEx rex);
+                    var matchSeasonEpisode = m.SI.DVDOrder
+                        ? seasF == m.AiredSeasonNumber && epF == m.AiredEpNum
+                        : seasF == m.DVDSeasonNumber && epF == m.DVDEpNum;
                     if (findFile && matchSeasonEpisode)
                     {
                         // match!
                         // get extension from nameInTorrent
-                        int p = nameInTorrent.LastIndexOf(".");
-                        string ext = (p == -1) ? "" : nameInTorrent.Substring(p);
-                        this.AlterResume(torrentFile, torrentFileNum, name + ext);
-                        if (this.SetPrios)
-                            this.SetResumePrio(torrentFile, torrentFileNum, BTPrio.Normal);
+                        var p = nameInTorrent.LastIndexOf(".");
+                        var ext = p == -1 ? "" : nameInTorrent.Substring(p);
+                        AlterResume(torrentFile, torrentFileNum, name + ext);
+                        if (SetPrios)
+                            SetResumePrio(torrentFile, torrentFileNum, BTPrio.Normal);
                         return new FileInfo(name + ext);
                     }
                 }
             }
+
             return null;
         }
 
         public void WriteResumeDat()
         {
-            this.FixFileguard();
+            FixFileguard();
             // write out new resume.dat file
-            string to = this.ResumeDatPath + ".before_tvrename";
+            var to = ResumeDatPath + ".before_tvrename";
             if (File.Exists(to))
                 File.Delete(to);
-            File.Move(this.ResumeDatPath, to);
-            Stream s = File.Create(this.ResumeDatPath);
-            this.ResumeDat.Write(s);
+            File.Move(ResumeDatPath, to);
+            Stream s = File.Create(ResumeDatPath);
+            ResumeDat.Write(s);
             s.Close();
         }
 
         public override bool NewTorrentEntry(string torrentFile, int numberInTorrent)
         {
-            this.NewLocation = "";
-            this.PrioWasSet = false;
-            this.Type = "?";
+            NewLocation = "";
+            PrioWasSet = false;
+            Type = "?";
             return true;
         }
 
-        public override bool FoundFileOnDiskForFileInTorrent(string torrentFile, FileInfo onDisk, int numberInTorrent, string nameInTorrent)
+        public override bool FoundFileOnDiskForFileInTorrent(string torrentFile, FileInfo onDisk, int numberInTorrent,
+            string nameInTorrent)
         {
-            this.NewLocation = onDisk.FullName;
-            this.Type = "Hash";
+            NewLocation = onDisk.FullName;
+            Type = "Hash";
 
-            this.AlterResume(torrentFile, numberInTorrent, onDisk.FullName); // make resume.dat point to the file we found
+            AlterResume(torrentFile, numberInTorrent, onDisk.FullName); // make resume.dat point to the file we found
 
-            if (this.SetPrios)
-                this.SetResumePrio(torrentFile, numberInTorrent, BTPrio.Normal);
+            if (SetPrios)
+                SetResumePrio(torrentFile, numberInTorrent, BTPrio.Normal);
 
             return true;
         }
 
-        public override bool DidNotFindFileOnDiskForFileInTorrent(string torrentFile, int numberInTorrent, string nameInTorrent)
+        public override bool DidNotFindFileOnDiskForFileInTorrent(string torrentFile, int numberInTorrent,
+            string nameInTorrent)
         {
-            this.Type = "Not Found";
+            Type = "Not Found";
 
-            if (this.SetPrios)
-                this.SetResumePrio(torrentFile, numberInTorrent, BTPrio.Skip);
+            if (SetPrios)
+                SetResumePrio(torrentFile, numberInTorrent, BTPrio.Skip);
             return true;
         }
 
         public override bool FinishedTorrentEntry(string torrentFile, int numberInTorrent, string filename)
         {
-            if (this.DoMatchMissing)
+            if (DoMatchMissing)
             {
-                FileInfo s = this.MatchMissing(torrentFile, numberInTorrent, filename);
+                var s = MatchMissing(torrentFile, numberInTorrent, filename);
                 if (s != null)
                 {
-                    this.PrioWasSet = true;
-                    this.NewLocation = s.FullName;
-                    this.Type = "Missing";
+                    PrioWasSet = true;
+                    NewLocation = s.FullName;
+                    Type = "Missing";
                 }
             }
 
-            if (this.SetPrios && !this.PrioWasSet)
+            if (SetPrios && !PrioWasSet)
             {
-                this.SetResumePrio(torrentFile, numberInTorrent, BTPrio.Skip);
-                this.Type = "Not Missing";
+                SetResumePrio(torrentFile, numberInTorrent, BTPrio.Skip);
+                Type = "Not Missing";
             }
 
-            bool prioChanged = this.SetPrios && this.PrioWasSet;
-            if (prioChanged || (!string.IsNullOrEmpty(this.NewLocation)))
-                this.AddResult(this.Type, torrentFile, (numberInTorrent + 1).ToString(), prioChanged ? this.GetResumePrio(torrentFile, numberInTorrent) : "", this.NewLocation);
+            var prioChanged = SetPrios && PrioWasSet;
+            if (prioChanged || !string.IsNullOrEmpty(NewLocation))
+                AddResult(Type, torrentFile, (numberInTorrent + 1).ToString(),
+                    prioChanged ? GetResumePrio(torrentFile, numberInTorrent) : "", NewLocation);
             return true;
         }
 
         public bool LoadResumeDat()
         {
-            BtEncodeLoader bel = new BtEncodeLoader();
-            this.ResumeDat = bel.Load(this.ResumeDatPath);
-            return (this.ResumeDat != null);
+            var bel = new BtEncodeLoader();
+            ResumeDat = bel.Load(ResumeDatPath);
+            return ResumeDat != null;
         }
 
         //public bool DoWork(List<string> Torrents, string searchFolder, ListView results, bool hashSearch, bool matchMissing, bool setPrios, bool testMode,
         //    bool searchSubFolders, ItemList missingList, List<FilenameProcessorRegEx> rexps, CommandLineArgs args)
-        public bool DoWork(List<string> Torrents, string searchFolder, bool hashSearch, bool matchMissing, bool setPrios, bool testMode,
+        public bool DoWork(List<string> Torrents, string searchFolder, bool hashSearch, bool matchMissing,
+            bool setPrios, bool testMode,
             bool searchSubFolders, ItemList missingList, List<FilenameProcessorRegEx> rexps, CommandLineArgs args)
         {
-            this.Rexps = rexps;
+            Rexps = rexps;
 
             if (!matchMissing && !hashSearch)
                 return true; // nothing to do
@@ -450,38 +443,38 @@ namespace TVRename.AppLogic.BitTorrent
             if (hashSearch && string.IsNullOrEmpty(searchFolder))
                 return false;
 
-            if (matchMissing && ((missingList == null) || (rexps == null)))
+            if (matchMissing && (missingList == null || rexps == null))
                 return false;
 
-            this.MissingList = missingList;
-            this.DoMatchMissing = matchMissing;
-            this.DoHashChecking = hashSearch;
-            this.SetPrios = setPrios;
-            //this.Results = results;
+            MissingList = missingList;
+            DoMatchMissing = matchMissing;
+            DoHashChecking = hashSearch;
+            SetPrios = setPrios;
+            //Results = results;
 
-            this.Prog(0);
+            Prog(0);
 
-            if (!this.LoadResumeDat())
+            if (!LoadResumeDat())
                 return false;
 
-            bool r = true;
+            var r = true;
 
-            this.Prog(0);
+            Prog(0);
 
             if (hashSearch)
-                this.BuildFileCache(searchFolder, searchSubFolders);
+                BuildFileCache(searchFolder, searchSubFolders);
 
-            foreach (string tf in Torrents)
+            foreach (var tf in Torrents)
             {
-                r = this.ProcessTorrentFile(tf); //TODO: Put this back, null, args);
+                r = ProcessTorrentFile(tf); //TODO: Put this back, null, args);
                 if (!r) // stop on the first failure
                     break;
             }
 
-            if (this.Altered && !testMode)
-                this.WriteResumeDat();
+            if (Altered && !testMode)
+                WriteResumeDat();
 
-            this.Prog(0);
+            Prog(0);
 
             return r;
         }
@@ -491,15 +484,14 @@ namespace TVRename.AppLogic.BitTorrent
             // if it is a .!ut file, we can remove the extension
             if (s.EndsWith(".!ut"))
                 return s.Remove(s.Length - 4);
-            else
-                return s;
+            return s;
         }
 
         public void AddResult(string type, string torrent, string num, string prio, string location)
         {
             // TODO: Put this back
 
-            //if (this.Results == null)
+            //if (Results == null)
             //    return;
 
             //int p = torrent.LastIndexOf(Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal);
@@ -511,9 +503,14 @@ namespace TVRename.AppLogic.BitTorrent
             //lvi.SubItems.Add(prio);
             //lvi.SubItems.Add(RemoveUT(location));
 
-            //this.Results.Items.Add(lvi);
+            //Results.Items.Add(lvi);
             //lvi.EnsureVisible();
-            //this.Results.Update();
+            //Results.Update();
+        }
+
+        private static class BTPrio
+        {
+            public const int Normal = 0x08, Skip = 0x80;
         }
     }
 }

@@ -1,14 +1,15 @@
-using Alphaleonis.Win32.Filesystem;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
 using TVRename.AppLogic.Delegates;
 using TVRename.AppLogic.DownloadIdentifiers;
 using TVRename.AppLogic.FileSystemCache;
 using TVRename.AppLogic.Helpers;
 using TVRename.AppLogic.ProcessedItems;
 using TVRename.AppLogic.ScanItems;
+using TVRename.AppLogic.ScanItems.Actions;
+using TVRename.AppLogic.ScanItems.Items;
 using TVRename.AppLogic.Settings;
 
 namespace TVRename.AppLogic.Finders
@@ -32,17 +33,17 @@ namespace TVRename.AppLogic.Finders
         {
             progressDelegate.Invoke(startPercent);
 
-            ItemList newList = new ItemList();
-            ItemList toRemove = new ItemList();
+            var newList = new ItemList();
+            var toRemove = new ItemList();
 
             int totalFiles = 0, searchedFiles = 0;
-            foreach (string searchFolder in TvRenameManager.SearchFolders)
+            foreach (var searchFolder in TvRenameManager.SearchFolders)
             {
                 totalFiles += DirectoryCache.CountFiles(searchFolder, true);
             }
 
-            DirectoryCache directoryCache = new DirectoryCache();
-            foreach (string searchFolder in TvRenameManager.SearchFolders)
+            var directoryCache = new DirectoryCache();
+            foreach (var searchFolder in TvRenameManager.SearchFolders)
             {
                 if (Cancel)
                 {
@@ -52,9 +53,9 @@ namespace TVRename.AppLogic.Finders
                 directoryCache.AddFolder(progressDelegate, searchedFiles, totalFiles, searchFolder, true);
             }
 
-            int currentItem = 0;
-            int totalN = ActionList.Count;
-            foreach (ItemBase action1 in ActionList)
+            var currentItem = 0;
+            var totalN = ActionList.Count;
+            foreach (var action1 in ActionList)
             {
                 if (Cancel)
                 {
@@ -68,11 +69,11 @@ namespace TVRename.AppLogic.Finders
                     continue;
                 }
 
-                int numberMatched = 0;
-                ItemList thisRound = new ItemList();
+                var numberMatched = 0;
+                var thisRound = new ItemList();
                 DirectoryCacheItem matchedFile = null;
 
-                foreach (DirectoryCacheItem dce in directoryCache)
+                foreach (var dce in directoryCache)
                 {
                     if (ReviewFile(me, thisRound, dce))
                     {
@@ -115,45 +116,49 @@ namespace TVRename.AppLogic.Finders
                 // ideally do that move within same filesystem
 
                 // sort based on source file, and destination drive, putting last if destdrive == sourcedrive
-                newList.Sort(new ActionItemSorter());
+                newList.Sort(new ItemSorter());
 
                 // sort puts all the CopyMoveRenames together				
 
                 // then set the last of each source file to be a move
-                for (int i = 0; i < newList.Count; i++)
+                for (var i = 0; i < newList.Count; i++)
                 {
-                    CopyMoveRenameActionItem cmr1 = newList[i] as CopyMoveRenameActionItem;
-                    bool ok1 = cmr1 != null;
+                    var cmr1 = newList[i] as CopyMoveRenameFileAction;
+                    var ok1 = cmr1 != null;
 
                     if (!ok1)
+                    {
                         continue;
+                    }
 
-                    bool last = i == (newList.Count - 1);
-                    CopyMoveRenameActionItem cmr2 = !last ? newList[i + 1] as CopyMoveRenameActionItem : null;
-                    bool ok2 = cmr2 != null;
+                    var last = i == (newList.Count - 1);
+                    var cmr2 = !last ? newList[i + 1] as CopyMoveRenameFileAction : null;
+                    var ok2 = cmr2 != null;
 
                     if (ok2)
                     {
-                        CopyMoveRenameActionItem a1 = cmr1;
-                        CopyMoveRenameActionItem a2 = cmr2;
+                        var a1 = cmr1;
+                        var a2 = cmr2;
                         if (!FileHelper.IsSameFile(a1.SourceFile, a2.SourceFile))
-                            a1.Operation = FileOperation.Move;
+                        {
+                            a1.Operation = FileOperationType.Move;
+                        }
                     }
                     else
                     {
                         // last item, or last copymoverename item in the list
-                        CopyMoveRenameActionItem a1 = cmr1;
-                        a1.Operation = FileOperation.Move;
+                        var a1 = cmr1;
+                        a1.Operation = FileOperationType.Move;
                     }
                 }
             }
 
-            foreach (ItemBase i in toRemove)
+            foreach (var i in toRemove)
             {
                 ActionList.Remove(i);
             }
 
-            foreach (ItemBase i in newList)
+            foreach (var i in newList)
             {
                 ActionList.Add(i);
             }
@@ -162,15 +167,21 @@ namespace TVRename.AppLogic.Finders
         private bool OtherActionsMatch(DirectoryCacheItem matchedFile, MissingItem me, ItemList actionList)
         //This is used to check whether the selected file may match any other files we are looking for
         {
-            foreach (ItemBase testAction in actionList)
+            foreach (var testAction in actionList)
             {
-                if (!(testAction is MissingItem testMissingAction)) continue;
+                if (!(testAction is MissingItem testMissingAction))
+                {
+                    continue;
+                }
                 if (testMissingAction.Equals(me))
                 {
                     continue;
                 }
 
-                if (ReviewFile(testMissingAction, new ItemList(), matchedFile)) return true;
+                if (ReviewFile(testMissingAction, new ItemList(), matchedFile))
+                {
+                    return true;
+                }
 
             }
 
@@ -181,56 +192,54 @@ namespace TVRename.AppLogic.Finders
         {
             // for each of the items in rcl, do the same copy/move if for other items with the same
             // base name, but different extensions
-
-            ItemList extras = new ItemList();
-
-            foreach (ItemBase action1 in actionlist)
+            var extras = new ItemList();
+            foreach (var action1 in actionlist)
             {
-                if (!(action1 is CopyMoveRenameActionItem))
+                if (!(action1 is CopyMoveRenameFileAction))
                     continue;
 
-                CopyMoveRenameActionItem action = (CopyMoveRenameActionItem)(action1);
+                var action = (CopyMoveRenameFileAction)action1;
 
                 try
                 {
-                    DirectoryInfo sfdi = action.SourceFile.Directory;
-                    string basename = action.SourceFile.Name;
-                    int l = basename.Length;
+                    var sfdi = action.SourceFile.Directory;
+                    var basename = action.SourceFile.Name;
+                    var l = basename.Length;
                     basename = basename.Substring(0, l - action.SourceFile.Extension.Length);
 
-                    string toname = action.TargetFile.Name;
-                    int l2 = toname.Length;
+                    var toname = action.TargetFile.Name;
+                    var l2 = toname.Length;
                     toname = toname.Substring(0, l2 - action.TargetFile.Extension.Length);
 
-                    FileInfo[] flist = sfdi.GetFiles(basename + ".*");
-                    foreach (FileInfo fi in flist)
+                    var flist = sfdi.GetFiles(basename + ".*");
+                    foreach (var fi in flist)
                     {
                         //check to see whether the file is one of the types we do/don't want to include
                         if (!ApplicationSettings.Instance.KeepTogetherFilesWithType(fi.Extension)) continue;
 
                         // do case insensitive replace
-                        string n = fi.Name;
-                        int p = n.IndexOf(basename, StringComparison.OrdinalIgnoreCase);
-                        string newName = n.Substring(0, p) + toname + n.Substring(p + basename.Length);
+                        var n = fi.Name;
+                        var p = n.IndexOf(basename, StringComparison.OrdinalIgnoreCase);
+                        var newName = n.Substring(0, p) + toname + n.Substring(p + basename.Length);
                         if (ApplicationSettings.Instance.RenameTxtToSub && newName.EndsWith(".txt"))
                         {
                             newName = newName.Substring(0, newName.Length - 4) + ".sub";
                         }
 
-                        CopyMoveRenameActionItem newitem = new CopyMoveRenameActionItem(fi,
+                        var newitem = new CopyMoveRenameFileAction(fi,
                             FileHelper.FileInFolder(action.TargetFile.Directory, newName), action.Operation,
                             action.ItemEpisode, null, null);
 
                         // check this item isn't already in our to-do list
-                        bool doNotAdd = false;
-                        foreach (ItemBase ai2 in actionlist)
+                        var doNotAdd = false;
+                        foreach (var ai2 in actionlist)
                         {
-                            if (!(ai2 is CopyMoveRenameActionItem))
+                            if (!(ai2 is CopyMoveRenameFileAction))
                             {
                                 continue;
                             }
 
-                            if (((CopyMoveRenameActionItem)ai2).IsSameSource(newitem))
+                            if (((CopyMoveRenameFileAction)ai2).IsSameSource(newitem))
                             {
                                 doNotAdd = true;
                                 break;
@@ -246,14 +255,14 @@ namespace TVRename.AppLogic.Finders
                         }
                     }
                 }
-                catch (System.IO.PathTooLongException e)
+                catch (PathTooLongException e)
                 {
-                    string t = "Path or filename too long. " + action.SourceFile.FullName + ", " + e.Message;
+                    var t = "Path or filename too long. " + action.SourceFile.FullName + ", " + e.Message;
 
                     // TODO: Put this back
                     // logger.Warn(e, "Path or filename too long. " + action.SourceFile.FullName);
 
-                    if ((!TvRenameManager.Args.Unattended) && (!TvRenameManager.Args.Hide))
+                    if (!TvRenameManager.Args.Unattended && (!TvRenameManager.Args.Hide))
                     {
                         // TODO: Figure out a delegate for raising events to show a message box in the UI
                         // MessageBox.Show(t, "Path or filename too long", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
@@ -261,11 +270,11 @@ namespace TVRename.AppLogic.Finders
                 }
             }
 
-            foreach (ItemBase action in extras)
+            foreach (var action in extras)
             {
                 // check we don't already have this in our list and, if we don't add it!
-                bool have = false;
-                foreach (ItemBase action2 in actionlist)
+                var have = false;
+                foreach (var action2 in actionlist)
                 {
                     if (action2.Equals(action))
                     {
@@ -273,9 +282,8 @@ namespace TVRename.AppLogic.Finders
                         break;
                     }
 
-                    if ((action is ActionItemBase a1) && (action2 is ActionItemBase))
+                    if (action is ActionBase a1 && action2 is ActionBase a2)
                     {
-                        ActionItemBase a2 = (ActionItemBase)action2;
                         if (a2.ActionProduces == a1.ActionProduces)
                         {
                             have = true;
@@ -291,21 +299,21 @@ namespace TVRename.AppLogic.Finders
                 }
             }
         }
+
+
         // consider each of the files, see if it is suitable for series "ser" and episode "epi"
         // if so, add a rcitem for copy to "fi"
-
-
         private bool ReviewFile(MissingItem me, ItemList addTo, DirectoryCacheItem dce)
         {
-            int season = me.ItemEpisode.AppropriateSeasonNumber;
-            int epnum = me.ItemEpisode.AppropriateEpNum;
+            var season = me.ItemEpisode.AppropriateSeasonNumber;
+            var epnum = me.ItemEpisode.AppropriateEpNum;
 
             if (Cancel)
             {
                 return true;
             }
 
-            bool matched = false;
+            var matched = false;
 
             try
             {
@@ -315,25 +323,18 @@ namespace TVRename.AppLogic.Finders
                 }
 
                 //do any of the possible names for the series match the filename?
-                matched = me.ItemEpisode.SI.getSimplifiedPossibleShowNames()
-                    .Any(name => FileHelper.SimplifyAndCheckFilename(dce.SimplifiedFullName, name));
+                matched = me.ItemEpisode.SI.getSimplifiedPossibleShowNames().Any(name => FileHelper.SimplifyAndCheckFilename(dce.SimplifiedFullName, name));
 
                 if (matched)
                 {
                     if (
-                        (TvRenameManager.FindSeasEp(dce.File, out int seasF, out int epF, out int maxEp, me.ItemEpisode.SI)
-                         && seasF == season
-                         && epF == epnum)
-                        ||
-                        (TvRenameManager.MatchesSequentialNumber(dce.File.Name, ref seasF, ref epF, me.ItemEpisode)
-                         && me.ItemEpisode.SI.UseSequentialMatch
-                         && seasF == season
-                         && epF == epnum)
+                        TvRenameManager.FindSeasEp(dce.File, out var seasF, out var epF, out var maxEp, me.ItemEpisode.SI) && seasF == season && epF == epnum
+                        || TvRenameManager.MatchesSequentialNumber(dce.File.Name, ref seasF, ref epF, me.ItemEpisode) && me.ItemEpisode.SI.UseSequentialMatch && seasF == season && epF == epnum
                     )
                     {
                         if (maxEp != -1 && ApplicationSettings.Instance.AutoMergeEpisodes)
                         {
-                            SeasonRule sr = new SeasonRule()
+                            var sr = new SeasonRule
                             {
                                 Action = RuleAction.Merge,
                                 First = epF,
@@ -355,32 +356,32 @@ namespace TVRename.AppLogic.Finders
                             TvRenameManager.GenerateEpisodeDict(me.ItemEpisode.SI);
 
                             //Get the newly created processed episode we are after
-                            List<ProcessedEpisode> newSeason = TvRenameManager.GetShowItem(me.ItemEpisode.SI.TVDBCode).SeasonEpisodes[seasF];
-                            ProcessedEpisode newPE = me.ItemEpisode;
+                            var newSeason = TvRenameManager.GetShowItem(me.ItemEpisode.SI.TVDBCode).SeasonEpisodes[seasF];
+                            var newPe = me.ItemEpisode;
 
-                            foreach (ProcessedEpisode pe in newSeason)
+                            foreach (var pe in newSeason)
                             {
-                                if (pe.AppropriateEpNum == epF && pe.EpNum2 == maxEp) newPE = pe;
+                                if (pe.AppropriateEpNum == epF && pe.EpNum2 == maxEp) newPe = pe;
                             }
 
-                            me = new MissingItem(newPE, me.ItemTargetFolder, ApplicationSettings.Instance.FilenameFriendly(ApplicationSettings.Instance.NamingStyle.NameForExt(newPE)));
+                            me = new MissingItem(newPe, me.ItemTargetFolder,
+                                ApplicationSettings.Instance.FilenameFriendly(
+                                    ApplicationSettings.Instance.NamingStyle.NameForExt(newPe)));
                         }
 
-                        FileInfo fi = new FileInfo(me.TheFileNoExt + dce.File.Extension);
+                        var fi = new FileInfo(me.TheFileNoExt + dce.File.Extension);
 
                         if (ApplicationSettings.Instance.PreventMove)
                         {
                             //We do not want to move the file, just rename it
-                            fi = new FileInfo(dce.File.DirectoryName + System.IO.Path.DirectorySeparatorChar + me.Filename + dce.File.Extension);
+                            fi = new FileInfo(dce.File.DirectoryName + Path.DirectorySeparatorChar + me.Filename + dce.File.Extension);
                         }
 
                         // don't remove the base search folders
-                        bool doTidyup = true;
-                        foreach (string searchFolder in this.TvRenameManager.SearchFolders)
+                        var doTidyup = true;
+                        foreach (var searchFolder in TvRenameManager.SearchFolders)
                         {
-                            if (searchFolder.IsSameDirectoryLocation(fi.Directory.FullName))
-
-
+                            if (fi.Directory != null && searchFolder.IsSameDirectoryLocation(fi.Directory.FullName))
                             {
                                 doTidyup = false;
                                 break;
@@ -389,27 +390,27 @@ namespace TVRename.AppLogic.Finders
 
                         if (dce.File.FullName != fi.FullName)
                         {
-                            addTo.Add(new CopyMoveRenameActionItem(dce.File, fi, FileOperation.Copy, me.ItemEpisode, doTidyup ? ApplicationSettings.Instance.Tidyup : null, me));
+                            addTo.Add(new CopyMoveRenameFileAction(dce.File, fi, FileOperationType.Copy, me.ItemEpisode, doTidyup ? ApplicationSettings.Instance.Tidyup : null, me));
                         }
 
-                        DownloadIdentifiersController di = new DownloadIdentifiersController();
+                        var di = new DownloadIdentifiersController();
 
                         // if we're copying/moving a file across, we might also want to make a thumbnail or NFO for it
-                        addTo.Add(di.ProcessEpisode(me.ItemEpisode, fi));
+                        addTo.AddRange(di.ProcessEpisode(me.ItemEpisode, fi));
 
                         return true;
                     }
                 }
             }
-            catch (System.IO.PathTooLongException e)
+            catch (PathTooLongException e)
             {
-                string t = "Path too long. " + dce.File.FullName + ", " + e.Message;
+                var t = "Path too long. " + dce.File.FullName + ", " + e.Message;
 
                 // TODO: Put this back
                 // logger.Warn(e, "Path too long. " + dce.File.FullName);
 
                 t += ".  More information is available in the log file";
-                if ((!this.TvRenameManager.Args.Unattended) && (!this.TvRenameManager.Args.Hide))
+                if ((!TvRenameManager.Args.Unattended) && (!TvRenameManager.Args.Hide))
                 {
                     // TODO: Figure out message boxes
                     // MessageBox.Show(t, "Path too long", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);

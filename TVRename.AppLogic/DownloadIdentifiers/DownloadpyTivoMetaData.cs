@@ -1,7 +1,8 @@
+using System.IO;
 using TVRename.AppLogic.Helpers;
 using TVRename.AppLogic.ProcessedItems;
+using TVRename.AppLogic.ScanItems;
 using TVRename.AppLogic.Settings;
-using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 
 namespace TVRename.AppLogic.DownloadIdentifiers
 {

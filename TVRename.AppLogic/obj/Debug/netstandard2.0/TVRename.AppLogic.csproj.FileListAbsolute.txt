@@ -1,6 +1,0 @@
-D:\Code\GitHub\tvrename\tvrename\TVRename.AppLogic\bin\Debug\netstandard2.0\TVRename.AppLogic.deps.json
-D:\Code\GitHub\tvrename\tvrename\TVRename.AppLogic\bin\Debug\netstandard2.0\TVRename.AppLogic.dll
-D:\Code\GitHub\tvrename\tvrename\TVRename.AppLogic\obj\Debug\netstandard2.0\TVRename.AppLogic.csprojResolveAssemblyReference.cache
-D:\Code\GitHub\tvrename\tvrename\TVRename.AppLogic\obj\Debug\netstandard2.0\TVRename.AppLogic.csproj.CoreCompileInputs.cache
-D:\Code\GitHub\tvrename\tvrename\TVRename.AppLogic\obj\Debug\netstandard2.0\TVRename.AppLogic.AssemblyInfoInputs.cache
-D:\Code\GitHub\tvrename\tvrename\TVRename.AppLogic\obj\Debug\netstandard2.0\TVRename.AppLogic.AssemblyInfo.cs

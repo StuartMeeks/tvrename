@@ -1,15 +1,11 @@
-using Alphaleonis.Win32.Filesystem;
+using System.IO;
 using TVRename.AppLogic.ProcessedItems;
+using TVRename.AppLogic.ScanItems;
 
 namespace TVRename.AppLogic.DownloadIdentifiers
 {
     public abstract class DownloadIdentifier
     {
-        protected DownloadIdentifier()
-        {
-            
-        }
-
         public abstract DownloadType GetDownloadType();
 
         public virtual ItemList ProcessSeries(ProcessedSeries si, bool forceRefresh = false)

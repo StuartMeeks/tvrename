@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml;
-using Alphaleonis.Win32.Filesystem;
 using TVRename.AppLogic.Helpers;
 using TVRename.AppLogic.ProcessedItems;
 using TVRename.AppLogic.TheTvDb;
@@ -451,7 +451,7 @@ namespace TVRename.AppLogic.Settings
                 else if (reader.Name == "EmptyMaxSizeCheck")
                     this.Tidyup.EmptyMaxSizeCheck = reader.ReadElementContentAsBoolean();
                 else if (reader.Name == "EmptyMaxSizeMB")
-                    this.Tidyup.EmptyMaxSizeMB = reader.ReadElementContentAsInt();
+                    this.Tidyup.EmptyMaxSizeMb = reader.ReadElementContentAsInt();
 
                 else if (reader.Name == "BulkAddIgnoreRecycleBin")
                     this.BulkAddIgnoreRecycleBin = reader.ReadElementContentAsBoolean();
@@ -734,7 +734,7 @@ namespace TVRename.AppLogic.Settings
             XmlHelper.WriteElementToXML(writer, "EmptyIgnoreExtensions", this.Tidyup.EmptyIgnoreExtensions);
             XmlHelper.WriteElementToXML(writer, "EmptyIgnoreExtensionList", this.Tidyup.EmptyIgnoreExtensionList);
             XmlHelper.WriteElementToXML(writer, "EmptyMaxSizeCheck", this.Tidyup.EmptyMaxSizeCheck);
-            XmlHelper.WriteElementToXML(writer, "EmptyMaxSizeMB", this.Tidyup.EmptyMaxSizeMB);
+            XmlHelper.WriteElementToXML(writer, "EmptyMaxSizeMB", this.Tidyup.EmptyMaxSizeMb);
             XmlHelper.WriteElementToXML(writer, "BetaMode", (int)this.Mode);
             XmlHelper.WriteElementToXML(writer, "PercentDirtyUpgrade", this.UpgradeDirtyPercent);
             XmlHelper.WriteElementToXML(writer, "BaseSeasonName", this.defaultSeasonWord);

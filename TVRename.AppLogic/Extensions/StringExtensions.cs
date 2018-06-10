@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace TVRename.AppLogic.Extensions
@@ -24,5 +26,19 @@ namespace TVRename.AppLogic.Extensions
                 RegexOptions.IgnoreCase
             );
         }
+
+        public static string TrimEnd(this string root, IEnumerable<string> endings)
+        {
+            return endings.Aggregate(root, (current, ending) => current.TrimEnd(ending));
+        }
+
+        public static string TrimEnd(this string root, string ending)
+        {
+            return !root.EndsWith(ending, StringComparison.OrdinalIgnoreCase)
+                ? root
+                : root.Substring(0, root.Length - ending.Length);
+        }
+
+
     }
 }

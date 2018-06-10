@@ -15,7 +15,7 @@ namespace TVRename.AppLogic.BitTorrent
 
         public override string AsText()
         {
-            string r = "List={";
+            var r = "List={";
 
             foreach (var btItemBase in Items)
             {
@@ -30,7 +30,7 @@ namespace TVRename.AppLogic.BitTorrent
         public override void Write(Stream sw)
         {
             sw.WriteByte((byte)'l');
-            foreach (BtItemBase i in this.Items)
+            foreach (var i in Items)
             {
                 i.Write(sw);
             }

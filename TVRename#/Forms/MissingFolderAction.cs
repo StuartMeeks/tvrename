@@ -19,17 +19,6 @@ namespace TVRename
     ///          the designers will not be able to interact properly with localized
     ///          resources associated with this form.
     /// </summary>
-    public enum FAResult
-    {
-        kfaNotSet,
-        kfaRetry,
-        kfaCancel,
-        kfaCreate,
-        kfaIgnoreOnce,
-        kfaIgnoreAlways,
-        kfaDifferentFolder
-    }
-
     public partial class MissingFolderAction : Form
     {
         public string FolderName;
